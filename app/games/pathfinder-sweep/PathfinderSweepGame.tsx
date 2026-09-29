@@ -30,7 +30,7 @@ import { ForestPath } from "./components/ForestPath";
 import type { HexTileVisualState } from "./components/HexTile";
 import { Typewriter } from "../../components/Typewriter";
 import { Ambient } from "../../components/Ambient";
-import { reportGame } from "../../lib/sessionReporter";
+import { reportGame } from "./lib/sessionReporter";
 
 // One continuous game: region-intro (narration) -> playing (all TOTAL_TRIALS
 // trials back-to-back) -> complete. No map, no level/mission selection, and
@@ -276,7 +276,7 @@ function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroPro
           <div style={narrationBubbleTailStyle} />
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mascot/fumi.png" alt="Fumi" style={mascotImageStyle} />
+        <img src="/games/pathfinder-sweep/mascot/fumi.png" alt="Fumi" style={mascotImageStyle} />
       </div>
 
       <button

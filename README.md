@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FUMI
 
-## Getting Started
+FUMI is a collection of short cognitive mini-games for kids, built with
+Next.js (App Router), React, and TypeScript. Each game is a self-contained,
+screen-based experience presented inside a phone-frame device mockup.
 
-First, run the development server:
+## Games
+
+| # | Game | Folder | What it trains |
+|---|------|--------|-----------------|
+| 1 | Pathfinder Sweep | [`app/games/pathfinder-sweep/`](app/games/pathfinder-sweep/README.md) | Selective attention, visual scanning |
+
+## Tech stack
+
+- **Next.js 16** (App Router), **React 19**, **TypeScript** (strict)
+- Inline styles only — no CSS modules, no Tailwind, no styled-components
+- `pnpm` as the package manager
+- No test framework — verification is `tsc --noEmit` + `eslint` + manual/Playwright-driven checks
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm exec tsc --noEmit   # typecheck
+pnpm lint                # eslint
+pnpm build               # production build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+app/
+  games/
+    pathfinder-sweep/     One game, fully self-contained — see its own README
+    <next-game>/          Every future game follows the identical layout
+  components/             Shared, cross-game UI primitives (mascot, device frame, ambient background, typewriter text)
+  layout.tsx              Root layout — fonts, metadata
+  page.tsx                Landing/shell — mounts whichever game is active
+  globals.css             Design tokens (CSS variables) + shared @keyframes
+public/
+  games/
+    pathfinder-sweep/     Assets belonging only to this game (backgrounds, mascot art, etc.)
+    <next-game>/          Same pattern per game
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Shared vs. game-specific
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **`app/components/`** — only things generic enough to be reused by *any*
+  future game (e.g. the mascot character, the phone-frame device mockup,
+  the ambient starfield background, the typewriter text effect).
+- **`app/games/<game-slug>/`** — everything specific to one game: its
+  screens, its game-loop logic, its own components, its own config, its
+  own assets under `public/games/<game-slug>/`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If you're unsure which bucket something belongs in, ask: "would a second,
+completely different game also want this exact thing, unmodified?" If yes,
+it's shared. If it only makes sense in the context of this one game, it
+lives inside that game's folder.
 
-## Deploy on Vercel
+## Adding a new game
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Copy the shape of [`app/games/pathfinder-sweep/`](app/games/pathfinder-sweep/README.md)
+exactly:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create `app/games/<game-slug>/` (kebab-case, matches the game's name).
+2. Inside it: `types.ts`, `config.ts` (data only), `engine/` (pure logic,
+   no React), `components/` (presentational), `lib/` (integration seams
+   like a results reporter), `<GameName>Game.tsx` (the orchestrator), and
+   `index.ts` (the only supported import surface — re-export the game
+   component, its props type, and any result types other code needs).
+3. Put game-specific assets under `public/games/<game-slug>/` and reference
+   them as `/games/<game-slug>/...`. Never put game-specific assets at the
+   public root.
+4. Add the game to the table at the top of this README.
+5. Wire it into `app/page.tsx` (or wherever games get selected/launched).
+
+This keeps every game independently reviewable, deletable, and handoff-able
+— a new team member (or a different team entirely) should be able to open
+one game's folder and understand it without reading any other game's code.
+
+## Deployment
+
+Deployed on Vercel. Pushing to `main` can be wired up for auto-deploy once
+the GitHub repo is connected to the Vercel project.

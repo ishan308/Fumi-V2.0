@@ -1,4 +1,4 @@
-import type { GameOutcome } from "../games/pathfinder-sweep/types";
+import type { GameOutcome } from "../types";
 
 const STORAGE_KEY = "fumi-game-results";
 const MAX_STORED_RESULTS = 100;

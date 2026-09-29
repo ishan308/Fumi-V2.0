@@ -5,7 +5,7 @@ export function ForestPath() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/backgrounds/forest-path.png"
+      src="/games/pathfinder-sweep/backgrounds/forest-path.png"
       alt=""
       aria-hidden
       style={{
