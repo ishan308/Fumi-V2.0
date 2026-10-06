@@ -9,6 +9,7 @@ screen-based experience presented inside a phone-frame device mockup.
 | # | Game | Folder | What it trains |
 |---|------|--------|-----------------|
 | 1 | Pathfinder Sweep | [`app/games/pathfinder-sweep/`](app/games/pathfinder-sweep/README.md) | Selective attention, visual scanning |
+| 2 | Signal Watch | [`app/games/signal-watch/`](app/games/signal-watch/README.md) | Sustained attention, signal detection |
 
 ## Tech stack
 
@@ -41,7 +42,7 @@ app/
     <next-game>/          Every future game follows the identical layout
   components/             Shared, cross-game UI primitives (mascot, device frame, ambient background, typewriter text)
   layout.tsx              Root layout — fonts, metadata
-  page.tsx                Landing/shell — mounts whichever game is active
+  page.tsx                Landing/shell — game picker (components/GamePicker.tsx), mounts the chosen game
   globals.css             Design tokens (CSS variables) + shared @keyframes
 public/
   games/

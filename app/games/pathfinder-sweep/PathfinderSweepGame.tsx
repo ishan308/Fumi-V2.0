@@ -347,7 +347,7 @@ function PauseOverlay({ onResume, onExit }: { onResume: () => void; onExit: () =
     <div style={pauseScrimStyle}>
       <div style={pauseCardStyle}>
         <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-soft)" }}>Paused</div>
-        <button type="button" className="tap-scale" onClick={onResume} style={continueButtonStyle}>
+        <button type="button" className="tap-scale" onClick={onResume} style={primaryButtonStyle}>
           Resume →
         </button>
         <button type="button" className="tap-scale" onClick={onExit} style={secondaryButtonStyle}>
@@ -433,7 +433,7 @@ function GameComplete({ outcome, onPlayAgain, onFinish }: GameCompleteProps) {
         <button type="button" className="tap-scale" onClick={onPlayAgain} style={{ ...secondaryButtonStyle, flex: 1 }}>
           Play Again
         </button>
-        <button type="button" className="tap-scale" onClick={onFinish} style={{ ...continueButtonStyle, flex: 1 }}>
+        <button type="button" className="tap-scale" onClick={onFinish} style={{ ...primaryButtonStyle, flex: 1 }}>
           Finish
         </button>
       </div>
@@ -514,7 +514,10 @@ function TrialRunner({ trial, previewMs, eccentricityBias, sessionSeed, paused, 
     [onPhaseChange]
   );
 
+  // Paused: hold the current phase (re-armed from the start on resume) so the
+  // preview/cue never plays out hidden behind the pause overlay.
   useEffect(() => {
+    if (paused) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     if (trialPhase === "preview") {
@@ -535,7 +538,17 @@ function TrialRunner({ trial, previewMs, eccentricityBias, sessionSeed, paused, 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [trialPhase, previewMs, setTrialPhase, onFinished]);
+  }, [trialPhase, paused, previewMs, setTrialPhase, onFinished]);
+
+  // Time spent paused mid-search shouldn't count toward reaction time —
+  // shift the search start forward by the paused duration on resume.
+  useEffect(() => {
+    if (!paused || trialPhase !== "search") return;
+    const pausedAt = Date.now();
+    return () => {
+      searchShownAtRef.current += Date.now() - pausedAt;
+    };
+  }, [paused, trialPhase]);
 
   const handleTapTile = useCallback(
     (tileId: string) => {
@@ -728,11 +741,9 @@ const narrationBubbleTailStyle: React.CSSProperties = {
   transform: "rotate(45deg)",
 };
 
-const continueButtonStyle: React.CSSProperties = {
-  position: "absolute",
-  bottom: 40,
-  left: 24,
-  right: 24,
+// Layout-neutral primary CTA — used inline in flex containers (pause card,
+// completion screen). continueButtonStyle below pins it to the screen bottom.
+const primaryButtonStyle: React.CSSProperties = {
   minHeight: 54,
   border: "none",
   borderRadius: 999,
@@ -743,6 +754,14 @@ const continueButtonStyle: React.CSSProperties = {
   cursor: "pointer",
   boxShadow: "var(--shadow-cta)",
   transition: "opacity 300ms ease",
+};
+
+const continueButtonStyle: React.CSSProperties = {
+  ...primaryButtonStyle,
+  position: "absolute",
+  bottom: 40,
+  left: 24,
+  right: 24,
 };
 
 const secondaryButtonStyle: React.CSSProperties = {

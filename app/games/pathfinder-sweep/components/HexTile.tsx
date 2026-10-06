@@ -170,7 +170,10 @@ export function HexTile({ tile, position, symbol, visualState, interactive, onTa
           height: "100%",
           clipPath: HEX_CLIP,
           background: STONE_FILL,
-          border: visualState === "correct" ? "3px solid #3DDC84" : "3px solid transparent",
+          // No transparent idle border: the light STONE_FILL would show
+          // through the border strip, which the grain overlays (positioned
+          // to the padding box) don't cover, leaving pale bars on the sides.
+          border: visualState === "correct" ? "3px solid #3DDC84" : "none",
           boxShadow: BEVEL_SHADOW + BASE_OUTLINE + GLOW_RING_BY_STATE[visualState],
           transition: "box-shadow 150ms ease, border-color 150ms ease",
           filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 10px rgba(0,0,0,0.5))",
