@@ -274,6 +274,237 @@ button {
   }
 }
 
+/* Signal Watch — tower signal effects (rings, ripples, flash, sparkles,
+   drifting leaves, gem flare). */
+@keyframes sw-ring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sw-ripple {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+@keyframes sw-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+@keyframes sw-sparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.6);
+  }
+}
+
+@keyframes sw-leaf-drift {
+  0% {
+    opacity: 0;
+    transform: translate(-24px, 10px);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(26px, -16px);
+  }
+}
+
+@keyframes sw-gem-flare {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* Signal Watch — living scene: drifting clouds, pouring waterfalls, river
+   current (strips slide by exactly one tile: --sw-tile / --sw-tile-w). */
+@keyframes sw-cloud-drift {
+  from {
+    transform: translateX(-240px);
+  }
+  to {
+    transform: translateX(420px);
+  }
+}
+
+@keyframes sw-flow-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--sw-tile));
+  }
+}
+
+@keyframes sw-flow-side {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--sw-tile-w));
+  }
+}
+
+@keyframes sw-mist {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.12);
+  }
+}
+
+/* Signal Watch — decoy effects (sunlight glare, bubbles, fish splash),
+   relay feedback (beam, mist puff, Fumi's raft) and unscored river life. */
+@keyframes sw-glare {
+  0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+  40% { opacity: 1; transform: scale(1.05) rotate(0deg); }
+  100% { opacity: 0.9; transform: scale(1) rotate(4deg); }
+}
+
+@keyframes sw-bubble-rise {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-95px) scale(1.15); }
+}
+
+@keyframes sw-fish-leap {
+  0% { opacity: 0; transform: translate(26px, 6px) rotate(-50deg); }
+  15% { opacity: 1; }
+  50% { transform: translate(4px, -62px) rotate(0deg); }
+  85% { opacity: 1; transform: translate(-20px, 0) rotate(50deg); }
+  100% { opacity: 0; transform: translate(-22px, 8px) rotate(60deg); }
+}
+
+@keyframes sw-droplet {
+  0% { opacity: 1; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+}
+
+@keyframes sw-mist-puff {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes sw-beam-draw {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes sw-beam-fade {
+  0%, 55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sw-beam-arrive {
+  0% { opacity: 0.9; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+@keyframes sw-fumi-hop {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-18px) scale(1.06); }
+  60% { transform: translateY(0) scale(0.97, 1.03); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes sw-raft-bob {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-4px) rotate(1.5deg); }
+}
+
+@keyframes sw-raft-ripple {
+  0% { opacity: 0.6; transform: scale(0.9); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+@keyframes sw-banner {
+  0% { opacity: 0; transform: translateY(-8px); }
+  12% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sw-ambient-ripple {
+  0% { opacity: 0; transform: scale(0.2); }
+  10% { opacity: 0.8; }
+  50% { opacity: 0; transform: scale(1.8); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+@keyframes sw-ambient-bubble {
+  0% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 1; }
+  60% { opacity: 0.9; transform: translateY(-14px); }
+  70%, 100% { opacity: 0; transform: translateY(-16px); }
+}
+
+@keyframes sw-ambient-fish {
+  0%, 78% { opacity: 0; transform: translate(-14px, 8px) rotate(-40deg); }
+  82% { opacity: 1; transform: translate(-10px, -8px) rotate(-30deg); }
+  90% { transform: translate(0, -22px) rotate(0deg); }
+  97% { opacity: 1; transform: translate(12px, 2px) rotate(40deg); }
+  100% { opacity: 0; transform: translate(14px, 8px) rotate(45deg); }
+}
+
+@keyframes sw-ambient-fish-ripple {
+  0%, 96% { opacity: 0; transform: translateX(14px) scale(0.3); }
+  98% { opacity: 0.9; transform: translateX(14px) scale(0.7); }
+  100% { opacity: 0; transform: translateX(14px) scale(1.5); }
+}
+
+@keyframes sw-ambient-leaf {
+  from { transform: translateX(-30px); }
+  to { transform: translateX(420px); }
+}
+
+@keyframes sw-ambient-leaf-spin {
+  from { transform: translateY(-3px) rotate(-25deg); }
+  to { transform: translateY(3px) rotate(25deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
