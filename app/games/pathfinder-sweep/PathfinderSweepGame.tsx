@@ -25,7 +25,8 @@ import { SYMBOL_LIBRARY } from "./engine/symbolLibrary";
 import { ReferenceBadge } from "./components/ReferenceBadge";
 import { SearchField } from "./components/SearchField";
 import { FireflyCue } from "./components/FireflyCue";
-import { FumiCompanion } from "./components/FumiCompanion";
+import { FumiCompanion } from "../../components/FumiCompanion";
+import { FumiPortrait } from "../../components/FumiPortrait";
 import { ForestPath } from "./components/ForestPath";
 import type { HexTileVisualState } from "./components/HexTile";
 import { Typewriter } from "../../components/Typewriter";
@@ -275,8 +276,7 @@ function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroPro
           <Typewriter text={NARRATION_TEXT} onDone={onNarrationDone} speedMultiplier={0.9} />
           <div style={narrationBubbleTailStyle} />
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/games/pathfinder-sweep/mascot/fumi.png" alt="Fumi" style={mascotImageStyle} />
+        <FumiPortrait />
       </div>
 
       <button
@@ -694,14 +694,6 @@ const narrationGroupStyle: React.CSSProperties = {
   gap: 16,
   alignItems: "center",
   animation: "bubble-pop 420ms var(--ease-pop) both",
-};
-
-const mascotImageStyle: React.CSSProperties = {
-  width: 168,
-  height: "auto",
-  display: "block",
-  filter: "drop-shadow(0 10px 16px rgba(0,0,0,0.45))",
-  animation: "float-y 3.2s ease-in-out infinite",
 };
 
 const narrationBubbleStyle: React.CSSProperties = {

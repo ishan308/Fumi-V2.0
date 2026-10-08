@@ -9,6 +9,7 @@ screen-based experience presented inside a phone-frame device mockup.
 | # | Game | Folder | What it trains |
 |---|------|--------|-----------------|
 | 1 | Pathfinder Sweep | [`app/games/pathfinder-sweep/`](app/games/pathfinder-sweep/README.md) | Selective attention, visual scanning |
+| 2 | Gatekeeper | [`app/games/gatekeeper/`](app/games/gatekeeper/README.md) | Sustained attention, response inhibition, impulse control |
 
 ## Tech stack
 
@@ -78,7 +79,9 @@ exactly:
    them as `/games/<game-slug>/...`. Never put game-specific assets at the
    public root.
 4. Add the game to the table at the top of this README.
-5. Wire it into `app/page.tsx` (or wherever games get selected/launched).
+5. Wire it into `app/games/registry.tsx` — the dev-only picker `app/page.tsx`
+   renders (not part of the shipped app; just how developers launch a game
+   locally without a per-game route).
 
 This keeps every game independently reviewable, deletable, and handoff-able
 — a new team member (or a different team entirely) should be able to open

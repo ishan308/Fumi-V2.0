@@ -16,6 +16,7 @@ export function ForestPath() {
         objectFit: "cover",
         objectPosition: "50% 50%",
         display: "block",
+        filter: "brightness(0.6)",
       }}
     />
   );
