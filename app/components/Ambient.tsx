@@ -18,8 +18,8 @@ const STAR_POSITIONS: [number, number, number, number][] = [
 // scattering of twinkling stars. Layer this behind any screen's content for
 // visual consistency with the FUMI brand's ambient look.
 export function Ambient({ tint = "violet" }: { tint?: "violet" | "forest" }) {
-  const glowA = tint === "forest" ? "rgba(46,140,90,0.25)" : "rgba(155,92,255,0.28)";
-  const glowB = tint === "forest" ? "rgba(20,60,45,0.4)" : "rgba(124,58,237,0.18)";
+  const glowA = tint === "forest" ? "rgba(64,185,125,0.4)" : "rgba(155,92,255,0.28)";
+  const glowB = tint === "forest" ? "rgba(36,110,80,0.55)" : "rgba(124,58,237,0.18)";
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }} aria-hidden>

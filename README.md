@@ -10,6 +10,8 @@ screen-based experience presented inside a phone-frame device mockup.
 |---|------|--------|-----------------|
 | 1 | Pathfinder Sweep | [`app/games/pathfinder-sweep/`](app/games/pathfinder-sweep/README.md) | Selective attention, visual scanning |
 | 2 | Gatekeeper | [`app/games/gatekeeper/`](app/games/gatekeeper/README.md) | Sustained attention, response inhibition, impulse control |
+| 3 | Decoy Grove | [`app/games/decoy-grove/`](app/games/decoy-grove/README.md) | Selective visual attention, visual discrimination, systematic scanning |
+| 4 | Switch Yard Rescue | [`app/games/switch-yard-rescue/`](app/games/switch-yard-rescue/README.md) | Deductive reasoning, constraint satisfaction, working memory |
 
 ## Tech stack
 

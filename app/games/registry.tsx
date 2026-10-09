@@ -5,6 +5,8 @@
 import type { ReactNode } from "react";
 import { PathfinderSweepGame } from "./pathfinder-sweep";
 import { GatekeeperGame } from "./gatekeeper";
+import { DecoyGroveGame } from "./decoy-grove";
+import { SwitchYardRescueGame } from "./switch-yard-rescue";
 
 export type DevGameEntry = {
   slug: string;
@@ -22,5 +24,15 @@ export const DEV_GAME_REGISTRY: DevGameEntry[] = [
     slug: "gatekeeper",
     title: "Gatekeeper",
     render: (onExit) => <GatekeeperGame ageBand="6-10" onExit={onExit} />,
+  },
+  {
+    slug: "decoy-grove",
+    title: "Decoy Grove",
+    render: (onExit) => <DecoyGroveGame ageBand="6-10" onExit={onExit} />,
+  },
+  {
+    slug: "switch-yard-rescue",
+    title: "Switch Yard Rescue",
+    render: (onExit) => <SwitchYardRescueGame ageBand="6-10" onExit={onExit} />,
   },
 ];
