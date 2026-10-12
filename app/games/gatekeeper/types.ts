@@ -67,6 +67,10 @@ export type QuestContext = {
   part: "A" | "B";
 };
 
+// "completed" once the player finishes every real trial; "exited" if they
+// left (the gate HUD's exit control) before that.
+export type GameSessionStatus = "completed" | "exited";
+
 // What the finished game leaves behind: enough to render the closing screen
 // and to hand off every metric called for in the game spec.
 export type GameOutcome = {
@@ -79,4 +83,5 @@ export type GameOutcome = {
   avgResponseTimeMs: number | null;
   gameplayDurationMs: number;
   starsEarned: number;
+  status: GameSessionStatus;
 };

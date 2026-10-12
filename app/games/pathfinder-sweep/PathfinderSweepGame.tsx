@@ -144,7 +144,7 @@ export function PathfinderSweepGame({ ageBand, seed, onExit }: PathfinderSweepGa
   const finishGame = useCallback(
     (timedOut: boolean) => {
       const endedAt = Date.now();
-      const outcome = computeGameOutcome(resultsRef.current, timedOut, startedAtRef.current, endedAt);
+      const outcome = computeGameOutcome(resultsRef.current, timedOut, startedAtRef.current, endedAt, "completed");
       reportGame(outcome);
       setLastOutcome(outcome);
       setScreen("complete");
@@ -183,7 +183,13 @@ export function PathfinderSweepGame({ ageBand, seed, onExit }: PathfinderSweepGa
     }
   }, [msRemaining, screen, finishGame]);
 
+  // Leaving from the pause overlay still reports whatever trials were
+  // actually completed before quitting, tagged "exited" rather than
+  // "completed" so a cut-short session reads differently from a finished
+  // (or timed-out) one.
   const handleExitGame = useCallback(() => {
+    const outcome = computeGameOutcome(resultsRef.current, false, startedAtRef.current, Date.now(), "exited");
+    reportGame(outcome);
     setPaused(false);
     onExit();
   }, [onExit]);

@@ -1,4 +1,4 @@
-import type { GameOutcome, TrialResult } from "../types";
+import type { GameOutcome, GameSessionStatus, TrialResult } from "../types";
 import { GAME_TIME_LIMIT_MS, TOTAL_TRIALS } from "../config";
 
 // Stars are a forgiving rating signal, not a hard fail condition. Finishing
@@ -17,7 +17,13 @@ function starsForRun(correctMatches: number, timeTakenMs: number, timedOut: bool
   return progressRatio >= 0.7 ? 2 : 1;
 }
 
-export function computeGameOutcome(trialResults: TrialResult[], timedOut: boolean, startedAt: number, endedAt: number): GameOutcome {
+export function computeGameOutcome(
+  trialResults: TrialResult[],
+  timedOut: boolean,
+  startedAt: number,
+  endedAt: number,
+  status: GameSessionStatus
+): GameOutcome {
   const correctMatches = trialResults.length;
   const incorrectTaps = trialResults.reduce((sum, t) => sum + t.incorrectTaps, 0);
   const tilesScanned = correctMatches + incorrectTaps;
@@ -30,5 +36,6 @@ export function computeGameOutcome(trialResults: TrialResult[], timedOut: boolea
     timeTakenMs,
     tilesScanned,
     correctMatches,
+    status,
   };
 }

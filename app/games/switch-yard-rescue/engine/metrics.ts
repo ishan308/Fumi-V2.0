@@ -1,4 +1,4 @@
-import type { GameOutcome, RoundResult } from "../types";
+import type { GameOutcome, GameSessionStatus, RoundResult } from "../types";
 
 // Forgiving rating, same spirit as every other FUMI mini-game: the worst
 // finishable outcome is still 1 star, never 0.
@@ -10,7 +10,13 @@ function starsForRun(perfectRounds: number, roundsCompleted: number): number {
   return 1;
 }
 
-export function computeGameOutcome(roundResults: RoundResult[], totalRoundsPresented: number, startedAt: number, endedAt: number): GameOutcome {
+export function computeGameOutcome(
+  roundResults: RoundResult[],
+  totalRoundsPresented: number,
+  startedAt: number,
+  endedAt: number,
+  status: GameSessionStatus
+): GameOutcome {
   const roundsCompleted = roundResults.length;
   const completionRatePct = totalRoundsPresented > 0 ? (roundsCompleted / totalRoundsPresented) * 100 : 0;
   const perfectRounds = roundResults.filter((r) => r.solvedFirstTry).length;
@@ -27,5 +33,6 @@ export function computeGameOutcome(roundResults: RoundResult[], totalRoundsPrese
     avgAttemptsPerRound,
     gameplayDurationMs: endedAt - startedAt,
     starsEarned: starsForRun(perfectRounds, roundsCompleted),
+    status,
   };
 }

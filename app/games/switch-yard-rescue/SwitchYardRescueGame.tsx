@@ -130,11 +130,21 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
 
   const finishGame = useCallback(() => {
     const endedAt = Date.now();
-    const outcome = computeGameOutcome(resultsRef.current, rounds.length, startedAtRef.current, endedAt);
+    const outcome = computeGameOutcome(resultsRef.current, rounds.length, startedAtRef.current, endedAt, "completed");
     reportGame(outcome);
     setLastOutcome(outcome);
     runTransition(() => setScreen("complete"));
   }, [rounds.length, runTransition]);
+
+  // Leaving mid-session (the header's ✕) still reports whatever rounds
+  // were actually solved before the player quit, tagged "exited" rather
+  // than "completed" — same metrics shape, just an honest status so
+  // partial sessions aren't indistinguishable from finished ones.
+  const handleExit = useCallback(() => {
+    const outcome = computeGameOutcome(resultsRef.current, rounds.length, startedAtRef.current, Date.now(), "exited");
+    reportGame(outcome);
+    onExit();
+  }, [rounds.length, onExit]);
 
   const advanceRound = useCallback(() => {
     const nextIndex = roundIndex + 1;
@@ -256,7 +266,7 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
         <YardBackdrop />
         <div style={playingWrapStyle}>
           <div style={headerRowStyle}>
-            <button type="button" className="tap-scale" onClick={onExit} style={exitButtonStyle} aria-label="Exit game">
+            <button type="button" className="tap-scale" onClick={handleExit} style={exitButtonStyle} aria-label="Exit game">
               ✕
             </button>
             <div style={roundCounterStyle}>

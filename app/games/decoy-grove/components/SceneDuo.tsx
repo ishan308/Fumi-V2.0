@@ -27,10 +27,31 @@ type SceneDuoProps = {
   height: number;
 };
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 const PANEL_ASPECT_RATIO_FALLBACK = 1.5;
 // Visible gap between the two panels — big enough to read as "two separate
 // photos stacked up", not a seam down the middle of one continuous image.
 const GAP = 14;
+
+// A handful of authored differences sit close enough to the crop's edge
+// (see sceneLibrary.ts's crop notes) that their found-marker ring would
+// otherwise extend past the panel's own box and get sliced off by its
+// overflow:hidden — e.g. scene-1's squirrel-color lost nearly a third of
+// its circle off the bottom. Keeping a little breathing room past the
+// true edge so even a dead-center difference's ring doesn't sit flush
+// against the panel border.
+const MARKER_EDGE_PADDING = 4;
+
+// The "The Mist Copy" badge (panelBadgeStyle, top:8/left:8) sits in its
+// own top-left corner, above the markers in z-order — measured footprint
+// is ~89x22 at (10,10), so a marker pushed up against the top edge by the
+// clamp above can land directly underneath it. Reserve a little more than
+// that footprint so an edge-clamped marker never has to render hidden
+// behind the badge instead of just being cut off by the panel edge.
+const BADGE_SAFE_ZONE = { right: 106, bottom: 38 };
 
 // Maps between "percent of the full source image" (what difference
 // coordinates are authored in) and "percent of the rendered, possibly
@@ -172,14 +193,28 @@ export function SceneDuo({
           .map((d) => {
             const pos = transform.toBoxPct(d.xPct, d.yPct);
             const { rx, ry } = transform.toBoxRadiusPx(Math.max(d.radiusPct, minTargetRadiusPct));
+            // Clamped in real pixels (not percent) so the ring's full
+            // extent — center ± radius — always lands inside the panel,
+            // nudging the center in from the edge rather than letting the
+            // circle itself get cropped.
+            const boxX = clamp((pos.xPct / 100) * width, rx + MARKER_EDGE_PADDING, width - rx - MARKER_EDGE_PADDING);
+            let boxY = clamp((pos.yPct / 100) * height, ry + MARKER_EDGE_PADDING, height - ry - MARKER_EDGE_PADDING);
+            // An edge-clamped marker that lands under the badge (rather
+            // than just near the true top edge) would render hidden behind
+            // it instead of visibly cropped — push it below the badge
+            // instead, re-clamped so that doesn't itself push past the
+            // bottom edge for a very short panel.
+            if (boxX - rx < BADGE_SAFE_ZONE.right && boxY - ry < BADGE_SAFE_ZONE.bottom) {
+              boxY = clamp(BADGE_SAFE_ZONE.bottom + ry + MARKER_EDGE_PADDING, ry + MARKER_EDGE_PADDING, height - ry - MARKER_EDGE_PADDING);
+            }
             return (
               <div
                 key={d.id}
                 aria-hidden
                 style={{
                   position: "absolute",
-                  left: `${pos.xPct}%`,
-                  top: `${pos.yPct}%`,
+                  left: boxX,
+                  top: boxY,
                   width: 0,
                   height: 0,
                 }}

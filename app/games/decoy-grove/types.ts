@@ -73,6 +73,10 @@ export type ComplexityAccuracy = {
   pct: number;
 };
 
+// "completed" once every scene (tutorial + scored) is cleared; "exited" if
+// the player left (the playing screen's exit control) before that.
+export type GameSessionStatus = "completed" | "exited";
+
 // What the finished game leaves behind — enough to render the closing
 // screen and hand off every metric called for in the game spec.
 export type GameOutcome = {
@@ -91,6 +95,7 @@ export type GameOutcome = {
   accuracyByComplexity: ComplexityAccuracy[];
   gameplayDurationMs: number;
   starsEarned: number;
+  status: GameSessionStatus;
 };
 
 export type QuestContext = {

@@ -1,4 +1,4 @@
-import type { ComplexityAccuracy, DifferenceType, DifferenceTypeAccuracy, GameOutcome, SceneResult } from "../types";
+import type { ComplexityAccuracy, DifferenceType, DifferenceTypeAccuracy, GameOutcome, GameSessionStatus, SceneResult } from "../types";
 
 // Forgiving rating, same spirit as every other FUMI mini-game: the worst
 // finishable outcome is still 1 star, never 0.
@@ -9,7 +9,13 @@ function starsForRun(detectionAccuracyPct: number, incorrectAreaTaps: number, sc
   return 1;
 }
 
-export function computeGameOutcome(sceneResults: SceneResult[], totalScenesPresented: number, startedAt: number, endedAt: number): GameOutcome {
+export function computeGameOutcome(
+  sceneResults: SceneResult[],
+  totalScenesPresented: number,
+  startedAt: number,
+  endedAt: number,
+  status: GameSessionStatus
+): GameOutcome {
   const scenesCompleted = sceneResults.length;
   const completionRatePct = totalScenesPresented > 0 ? (scenesCompleted / totalScenesPresented) * 100 : 0;
 
@@ -69,5 +75,6 @@ export function computeGameOutcome(sceneResults: SceneResult[], totalScenesPrese
     accuracyByComplexity,
     gameplayDurationMs: endedAt - startedAt,
     starsEarned: starsForRun(detectionAccuracyPct, incorrectAreaTaps, scenesCompleted),
+    status,
   };
 }

@@ -171,11 +171,20 @@ export function GatekeeperGame({ ageBand, seed, onExit }: GatekeeperGameProps) {
 
   const finishGame = useCallback(() => {
     const endedAt = Date.now();
-    const outcome = computeGameOutcome(resultsRef.current, startedAtRef.current, endedAt);
+    const outcome = computeGameOutcome(resultsRef.current, startedAtRef.current, endedAt, "completed");
     reportGame(outcome);
     setLastOutcome(outcome);
     runTransition(() => setScreen("complete"));
   }, [runTransition]);
+
+  // Leaving mid-run (the gate HUD's exit control) still reports whatever
+  // real trials were recorded before quitting, tagged "exited" rather
+  // than "completed".
+  const handleExit = useCallback(() => {
+    const outcome = computeGameOutcome(resultsRef.current, startedAtRef.current, Date.now(), "exited");
+    reportGame(outcome);
+    onExit();
+  }, [onExit]);
 
   const handleRealResult = useCallback((result: TrialResult) => {
     resultsRef.current = [...resultsRef.current, result];
@@ -259,7 +268,7 @@ export function GatekeeperGame({ ageBand, seed, onExit }: GatekeeperGameProps) {
           onResult={handleRealResult}
           onAdvance={handleRealAdvance}
         />
-        <GateHud gateStage={gateStage} powerPulseKey={powerPulseKey} onExit={onExit} />
+        <GateHud gateStage={gateStage} powerPulseKey={powerPulseKey} onExit={handleExit} />
         {showRuleReminder && <div style={ruleReminderStyle}>{CHILD_RULE_TEXT}</div>}
         {milestoneStage !== null && <BlockMilestone stage={milestoneStage} />}
         {errorPulseKey > 0 && <div key={errorPulseKey} aria-hidden style={errorVignetteStyle} />}

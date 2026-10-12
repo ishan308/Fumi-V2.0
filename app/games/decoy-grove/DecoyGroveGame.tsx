@@ -114,11 +114,21 @@ export function DecoyGroveGame({ ageBand, onExit }: DecoyGroveGameProps) {
 
   const finishGame = useCallback(() => {
     const endedAt = Date.now();
-    const outcome = computeGameOutcome(resultsRef.current, scoredScenes.length, startedAtRef.current, endedAt);
+    const outcome = computeGameOutcome(resultsRef.current, scoredScenes.length, startedAtRef.current, endedAt, "completed");
     reportGame(outcome);
     setLastOutcome(outcome);
     runTransition(() => setScreen("complete"));
   }, [runTransition, scoredScenes.length]);
+
+  // Leaving mid-session (the playing screen's exit control) still reports
+  // whatever scored scenes were actually finished before quitting, tagged
+  // "exited" rather than "completed" (the tutorial scene never counts
+  // toward sceneResults either way, same as the normal finish path).
+  const handleExit = useCallback(() => {
+    const outcome = computeGameOutcome(resultsRef.current, scoredScenes.length, startedAtRef.current, Date.now(), "exited");
+    reportGame(outcome);
+    onExit();
+  }, [onExit, scoredScenes.length]);
 
   const advanceScene = useCallback(() => {
     const nextIndex = sceneIndex + 1;
@@ -226,7 +236,7 @@ export function DecoyGroveGame({ ageBand, onExit }: DecoyGroveGameProps) {
       <>
         <Ambient tint="forest" />
         <div style={{ ...playingHeaderStyle, top: SAFE_AREA_TOP + 6 }}>
-          <button type="button" className="tap-scale" onClick={onExit} style={exitButtonStyle} aria-label="Exit game">
+          <button type="button" className="tap-scale" onClick={handleExit} style={exitButtonStyle} aria-label="Exit game">
             ✕
           </button>
           <div style={differenceCounterStyle}>

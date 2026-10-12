@@ -18,6 +18,11 @@ export type RoundPlan = {
   correctOrder: GemType[];
 };
 
+// "completed" once the player reaches the last round's success; "exited"
+// if they left (the header's ✕) before that, whatever partial progress
+// exists by then still gets reported.
+export type GameSessionStatus = "completed" | "exited";
+
 export type RoundResult = {
   roundNumber: number;
   cardCount: number;
@@ -38,6 +43,7 @@ export type GameOutcome = {
   avgAttemptsPerRound: number;
   gameplayDurationMs: number;
   starsEarned: number;
+  status: GameSessionStatus;
 };
 
 export type QuestContext = {

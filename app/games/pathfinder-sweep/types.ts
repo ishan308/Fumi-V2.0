@@ -86,6 +86,12 @@ export type PlayAreaSize = {
   height: number;
 };
 
+// "completed" covers both a normal finish and running out the clock
+// (that's what the separate `timedOut` flag is for) — either way the
+// session reached its natural end. "exited" is specifically the player
+// leaving early via the pause overlay's Exit button.
+export type GameSessionStatus = "completed" | "exited";
+
 // What the finished game leaves behind: enough to render the closing screen
 // (stars, stats, rewards). One continuous playthrough, not a per-level
 // result — there is no level/mission breakdown to grade separately.
@@ -96,4 +102,5 @@ export type GameOutcome = {
   timeTakenMs: number;
   tilesScanned: number;
   correctMatches: number;
+  status: GameSessionStatus;
 };
