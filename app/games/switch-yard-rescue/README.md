@@ -55,7 +55,7 @@ switch-yard-rescue/
     sessionPlanner.ts              Builds the round sequence + per-round palette shuffle
     metrics.ts                     Turns raw round results into the end-of-game outcome/star rating
   components/
-    GemCard.tsx                  One tappable gem (palette or placed-in-cart)
+    GemCard.tsx                  One draggable gem (palette or placed-in-cart)
     CartTrack.tsx                 The row of cart slots being loaded
     ClueList.tsx                  The read-only clue/rules plate
     YardBackdrop.tsx              PLACEHOLDER background — see "Status"
@@ -65,9 +65,11 @@ switch-yard-rescue/
 
 ## Game rule
 
-Tap gem cards from the palette to load them into the cart slots, in the
-order you think is correct based on the round's clues. Tap a loaded cart
-to send that gem back to the palette (undo). Once every slot is filled,
+Drag gem cards from the palette into whichever cart slot you want, in the
+order you think is correct based on the round's clues — any card can go to
+any cart, dropping on an occupied one swaps it out. Drag a loaded cart's
+gem back onto the palette to send it back (undo), or onto another cart to
+swap the two. Once every slot is filled,
 "Send Carts" checks the order: correct and the power station lights up and
 the next round opens; wrong and the carts shake — rearrange and try again,
 no limit on attempts (per-round `attempts` count feeds the star rating,

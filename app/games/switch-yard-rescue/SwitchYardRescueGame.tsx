@@ -17,6 +17,27 @@ import { reportGame } from "./lib/sessionReporter";
 
 type GameScreen = "region-intro" | "playing" | "complete";
 
+// Where a dragged gem came from — its own palette tray, or another cart
+// it's being moved/swapped out of. GemType alone identifies it since no
+// round repeats a gem type across its own cards/palette.
+type DragSource = { kind: "palette"; gem: GemType } | { kind: "slot"; index: number; gem: GemType };
+type DropTarget = { type: "slot"; index: number } | { type: "palette" };
+
+// Hit-tests a viewport point against whatever cart slot or the palette
+// tray is visually underneath it, via the data attributes CartTrack/the
+// palette row carry. Pure and stateless so both the live hover indicator
+// (on every pointermove) and the actual drop decision (on pointerup) can
+// resolve it fresh from real coordinates, rather than the drop trusting a
+// hover state that pointermove might never have had a chance to set.
+function resolveDropTarget(clientX: number, clientY: number): DropTarget | null {
+  const el = document.elementFromPoint(clientX, clientY);
+  const slotEl = el?.closest<HTMLElement>("[data-slot-index]");
+  if (slotEl) return { type: "slot", index: Number(slotEl.dataset.slotIndex) };
+  const paletteEl = el?.closest<HTMLElement>("[data-palette-dropzone]");
+  if (paletteEl) return { type: "palette" };
+  return null;
+}
+
 function generateSeed(): string {
   return `syr-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -34,6 +55,14 @@ const sceneWrapperStyle: React.CSSProperties = {
   overflow: "hidden",
   background: "var(--color-midnight)",
   fontFamily: "var(--font-body), system-ui",
+};
+
+const dragGhostStyle: React.CSSProperties = {
+  position: "fixed",
+  transform: "translate(-50%, -50%) scale(1.12)",
+  pointerEvents: "none",
+  zIndex: 500,
+  filter: "drop-shadow(0 14px 22px rgba(0,0,0,0.55))",
 };
 
 const veilStyle: React.CSSProperties = {
@@ -60,6 +89,8 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
   const [success, setSuccess] = useState(false);
   const [lastOutcome, setLastOutcome] = useState<GameOutcome | null>(null);
   const [veil, setVeil] = useState<{ opacity: number; message: string | null }>({ opacity: 0, message: null });
+  const [drag, setDrag] = useState<{ source: DragSource; x: number; y: number } | null>(null);
+  const [hoverTarget, setHoverTarget] = useState<DropTarget | null>(null);
 
   const startedAtRef = useRef(0);
   const roundStartedAtRef = useRef(0);
@@ -115,34 +146,72 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
     }
   }, [roundIndex, rounds.length, finishGame, resetRound]);
 
-  const handlePaletteTap = useCallback(
-    (gem: GemType, paletteIndex: number) => {
+  // Picking up a gem — from the palette or out of a cart — starts a drag.
+  // Pointer capture keeps move/up events targeted at the card that was
+  // grabbed even once the finger moves elsewhere, so hit-testing what's
+  // underneath (via elementFromPoint, below) is all that's needed to know
+  // the drop target.
+  const beginDrag = useCallback(
+    (source: DragSource, e: React.PointerEvent<HTMLDivElement>) => {
       if (success) return;
-      const emptyIndex = slots.findIndex((s) => s === null);
-      if (emptyIndex === -1) return;
-      setSlots((prev) => {
-        const next = [...prev];
-        next[emptyIndex] = gem;
-        return next;
-      });
-      setPalette((prev) => prev.filter((_, i) => i !== paletteIndex));
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDrag({ source, x: e.clientX, y: e.clientY });
     },
-    [slots, success]
+    [success]
   );
 
-  const handleSlotRemove = useCallback(
-    (slotIndex: number) => {
-      if (success) return;
-      const gem = slots[slotIndex];
-      if (!gem) return;
-      setSlots((prev) => {
-        const next = [...prev];
-        next[slotIndex] = null;
-        return next;
-      });
-      setPalette((prev) => [...prev, gem]);
+  const handleDragMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+    setHoverTarget(resolveDropTarget(e.clientX, e.clientY));
+  }, []);
+
+  // Dropped onto a cart: places the dragged gem there, swapping back
+  // whatever already occupied that cart (to the palette if it came from
+  // there, or into the vacated cart if it came from another one). Dropped
+  // onto the palette tray: only meaningful for a cart-sourced drag, and
+  // just returns that gem. Dropped anywhere else: no-op, the card snaps
+  // back to where it started since nothing was mutated mid-drag.
+  //
+  // The drop target is resolved fresh from the release point here, not
+  // read from the `hoverTarget` state — a short/fast drag (e.g. between
+  // two adjacent carts) can release before the browser ever delivers a
+  // pointermove event (they're throttled/coalesced), which would leave
+  // hoverTarget stuck at its initial null and silently cancel every such
+  // drop.
+  const handleDragEnd = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!drag) return;
+      const { source } = drag;
+      const target = resolveDropTarget(e.clientX, e.clientY);
+      setDrag(null);
+      setHoverTarget(null);
+
+      if (target?.type === "slot") {
+        const targetIndex = target.index;
+        if (source.kind === "slot" && source.index === targetIndex) return;
+        const occupying = slots[targetIndex];
+        setSlots((prev) => {
+          const next = [...prev];
+          if (source.kind === "slot") next[source.index] = occupying ?? null;
+          next[targetIndex] = source.gem;
+          return next;
+        });
+        if (source.kind === "palette") {
+          setPalette((prev) => {
+            const rest = prev.filter((g) => g !== source.gem);
+            return occupying ? [...rest, occupying] : rest;
+          });
+        }
+      } else if (target?.type === "palette" && source.kind === "slot") {
+        setSlots((prev) => {
+          const next = [...prev];
+          next[source.index] = null;
+          return next;
+        });
+        setPalette((prev) => [...prev, source.gem]);
+      }
     },
-    [slots, success]
+    [drag, slots]
   );
 
   const handleSendCarts = useCallback(() => {
@@ -198,32 +267,58 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
 
           <ClueList rules={currentRound.rules} />
 
-          <div style={paletteRowStyle}>
-            {palette.map((gem, i) => (
-              <GemCard key={`${gem}-${i}`} gem={gem} interactive={!success} onTap={() => handlePaletteTap(gem, i)} />
-            ))}
-          </div>
-
-          <div style={{ flex: 1 }} />
-
-          <div style={trackLabelStyle}>{success ? "Power station restarting!" : "Carts, in order:"}</div>
-          <CartTrack slots={slots} interactive={!success} shake={shakeKey > 0} onRemove={handleSlotRemove} />
-
-          <button
-            type="button"
-            className="tap-scale"
-            onClick={handleSendCarts}
-            disabled={!allSlotsFilled || success}
+          <div
+            data-palette-dropzone
             style={{
-              ...sendButtonStyle,
-              opacity: allSlotsFilled && !success ? 1 : 0.45,
-              pointerEvents: allSlotsFilled && !success ? "auto" : "none",
-              background: success ? "linear-gradient(135deg, #5FBE63, #3E9A42)" : "var(--gradient-cta)",
+              ...paletteRowStyle,
+              boxShadow: hoverTarget?.type === "palette" ? "inset 0 0 0 2px rgba(240,197,114,0.75)" : "none",
+              borderRadius: 16,
+              transition: "box-shadow 120ms ease",
             }}
           >
-            {success ? "Restarted! ✦" : SEND_CARTS_LABEL}
-          </button>
+            {palette.map((gem, i) => (
+              <GemCard
+                key={`${gem}-${i}`}
+                gem={gem}
+                draggable={!success}
+                dimmed={drag?.source.kind === "palette" && drag.source.gem === gem}
+                onPointerDown={(e) => beginDrag({ kind: "palette", gem }, e)}
+                onPointerMove={handleDragMove}
+                onPointerUp={handleDragEnd}
+                onPointerCancel={handleDragEnd}
+              />
+            ))}
+          </div>
         </div>
+
+        {/* Pinned to the painted tracks in the background art, not the
+            document flow above — see CartTrack's own notes on why. */}
+        <div style={trackLabelStyle}>{success ? "Power station restarting!" : "Drag the gems into the carts, in order:"}</div>
+        <CartTrack
+          slots={slots}
+          interactive={!success}
+          shake={shakeKey > 0}
+          draggingIndex={drag?.source.kind === "slot" ? drag.source.index : null}
+          hoverIndex={hoverTarget?.type === "slot" ? hoverTarget.index : null}
+          onGemPointerDown={(index, gem, e) => beginDrag({ kind: "slot", index, gem }, e)}
+          onDragPointerMove={handleDragMove}
+          onDragPointerUp={handleDragEnd}
+        />
+
+        <button
+          type="button"
+          className="tap-scale"
+          onClick={handleSendCarts}
+          disabled={!allSlotsFilled || success}
+          style={{
+            ...sendButtonStyle,
+            opacity: allSlotsFilled && !success ? 1 : 0.45,
+            pointerEvents: allSlotsFilled && !success ? "auto" : "none",
+            background: success ? "linear-gradient(135deg, #5FBE63, #3E9A42)" : "var(--gradient-cta)",
+          }}
+        >
+          {success ? "Restarted! ✦" : SEND_CARTS_LABEL}
+        </button>
       </>
     );
   } else if (screen === "complete" && lastOutcome) {
@@ -240,6 +335,14 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
           </div>
         )}
       </div>
+      {/* The actual dragged card — fixed to the viewport (no transformed
+          ancestor sits between here and the page) so it tracks the
+          pointer exactly regardless of where in the layout it started. */}
+      {drag && (
+        <div aria-hidden style={{ ...dragGhostStyle, left: drag.x, top: drag.y }}>
+          <GemCard gem={drag.source.gem} size={74} draggable={false} />
+        </div>
+      )}
     </div>
   );
 }
@@ -472,11 +575,12 @@ const secondaryButtonStyle: React.CSSProperties = {
 
 const playingWrapStyle: React.CSSProperties = {
   position: "absolute",
-  inset: 0,
+  top: 0,
+  left: 0,
+  right: 0,
   display: "flex",
   flexDirection: "column",
   paddingTop: SAFE_AREA_TOP + 8,
-  paddingBottom: 16,
   paddingLeft: 16,
   paddingRight: 16,
   gap: 12,
@@ -521,17 +625,34 @@ const paletteRowStyle: React.CSSProperties = {
   gap: 8,
   flexWrap: "wrap",
   justifyContent: "center",
+  // With no gems left (every slot filled), this row would otherwise
+  // collapse to 0 height — exactly when a drag-a-gem-back-to-the-palette
+  // gesture is most likely, and a 0-height element can never be the
+  // target elementFromPoint resolves to. Keep it tall enough to stay a
+  // real drop target even empty.
+  minHeight: 68,
 };
 
+// Sits just above the painted buffer stops (CartTrack pins its row to
+// image-space y=75%) rather than in the document flow.
 const trackLabelStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "65%",
+  left: 16,
+  right: 16,
   textAlign: "center",
   fontSize: 11.5,
   fontWeight: 700,
   color: "var(--color-lavender)",
   opacity: 0.85,
+  textShadow: "0 2px 6px rgba(0,0,0,0.6)",
 };
 
 const sendButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  bottom: 16,
+  left: 16,
+  right: 16,
   minHeight: 50,
   border: "none",
   borderRadius: 999,

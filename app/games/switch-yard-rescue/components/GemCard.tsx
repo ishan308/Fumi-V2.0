@@ -6,9 +6,19 @@ import { GEM_THEME } from "../config";
 type GemCardProps = {
   gem: GemType;
   size?: number;
-  interactive?: boolean;
-  onTap?: () => void;
+  // Whether this card can be picked up at all right now (false once the
+  // round is solved, or for the floating drag ghost which is a pure
+  // visual copy with no pointer handling of its own).
+  draggable?: boolean;
+  // True for the card's original spot while it's mid-drag — stays in
+  // place but faded, since the floating ghost is what's actually
+  // following the pointer.
+  dimmed?: boolean;
   shake?: boolean;
+  onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerCancel?: (e: React.PointerEvent<HTMLDivElement>) => void;
 };
 
 // A simple faceted-gem glyph, code-drawn (no raster asset yet — see this
@@ -24,18 +34,32 @@ function GemGlyph({ color }: { color: string }) {
   );
 }
 
-// One tappable gem card — used both in the palette (available gems) and,
-// once placed, inside a cart slot (tap again to send it back to the
-// palette). Carved-glow styling matches the rest of the app's dark,
-// backlit-gem aesthetic.
-export function GemCard({ gem, size = 68, interactive = true, onTap, shake = false }: GemCardProps) {
+// One draggable gem card — used both in the palette (available gems) and,
+// once placed, inside a cart slot. Not clickable: picking one up is a
+// pointer-down-and-drag gesture (see SwitchYardRescueGame's drag
+// orchestration), dropped onto whichever cart the player chooses, same as
+// Lumosity's Organic Order. Carved-glow styling matches the rest of the
+// app's dark, backlit-gem aesthetic.
+export function GemCard({
+  gem,
+  size = 68,
+  draggable = true,
+  dimmed = false,
+  shake = false,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+}: GemCardProps) {
   const theme = GEM_THEME[gem];
   return (
-    <button
-      type="button"
-      onClick={onTap}
-      disabled={!interactive}
+    <div
+      role="img"
       aria-label={theme.label}
+      onPointerDown={draggable ? onPointerDown : undefined}
+      onPointerMove={draggable ? onPointerMove : undefined}
+      onPointerUp={draggable ? onPointerUp : undefined}
+      onPointerCancel={draggable ? onPointerCancel : undefined}
       style={{
         width: size,
         height: size,
@@ -48,9 +72,12 @@ export function GemCard({ gem, size = 68, interactive = true, onTap, shake = fal
         alignItems: "center",
         justifyContent: "center",
         gap: 2,
-        padding: 0,
-        cursor: interactive ? "pointer" : "default",
+        opacity: dimmed ? 0.25 : 1,
+        touchAction: "none",
+        userSelect: "none",
+        cursor: draggable ? "grab" : "default",
         animation: shake ? "shake-x 260ms ease-in-out" : undefined,
+        transition: "opacity 150ms ease",
       }}
     >
       <GemGlyph color={theme.color} />
@@ -64,6 +91,6 @@ export function GemCard({ gem, size = 68, interactive = true, onTap, shake = fal
       >
         {theme.label}
       </span>
-    </button>
+    </div>
   );
 }
