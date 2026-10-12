@@ -4,9 +4,9 @@ import type { GemType, QuestContext } from "./types";
 export const PLAY_AREA = { width: 390, height: 700 };
 export const SAFE_AREA_TOP = 44;
 
-// Straight from the spec spreadsheet (column F).
-export const NARRATION_TEXT =
-  "Read the clues to load the energy gems into the carts in the right order. The power station will only restart if the carts enter in the correct order.";
+// Shortened from the spec spreadsheet's (column F) original — fits the
+// narration bubble in 2 lines instead of 4, same meaning.
+export const NARRATION_TEXT = "Load the energy gems in the clue order to restart the power station.";
 export const SEND_CARTS_LABEL = "Send Carts";
 
 // Carved-gem palette — one accent color per gem type, used for the card

@@ -86,16 +86,16 @@ function coverCropTransform(boxWidth: number, boxHeight: number, aspectRatio: nu
         yPct: ((nativeY * scale - offsetY) / boxHeight) * 100,
       };
     },
-    // a difference's radiusPct (authored once, in image-percent space) ->
-    // on-screen pixel radii — elliptical, not circular, since x% and y%
-    // are percentages of different dimensions (width vs height). This is
-    // what lets the found-marker hug the actual tolerance zone instead of
-    // a fixed guessed size.
+    // a difference's radiusPct -> on-screen pixel radius. A true circle
+    // (not rx=scaledW-based, ry=scaledH-based ellipse) — scene-1's crop
+    // stretches scaledH well past scaledW (~1.35x), which made every
+    // found-marker a visibly tall oval and the real object inside it read
+    // as "sitting too high" even when the authored coordinate was dead-
+    // on. Sized off the smaller of the two scales so it still stays
+    // comfortably inside whichever axis is more constrained.
     toBoxRadiusPx(radiusPct: number) {
-      return {
-        rx: (radiusPct / 100) * scaledW,
-        ry: (radiusPct / 100) * scaledH,
-      };
+      const r = (radiusPct / 100) * Math.min(scaledW, scaledH);
+      return { rx: r, ry: r };
     },
   };
 }

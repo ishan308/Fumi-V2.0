@@ -286,16 +286,6 @@ button {
   }
 }
 
-@keyframes gold-shimmer {
-  0%,
-  100% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 0% 100%;
-  }
-}
-
 @keyframes rule-reminder-in {
   0% {
     opacity: 0;

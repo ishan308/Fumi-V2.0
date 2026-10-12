@@ -24,6 +24,8 @@ import { Ambient } from "../../components/Ambient";
 import { Fumi } from "../../components/Fumi";
 import { FumiCompanion } from "../../components/FumiCompanion";
 import { FumiPortrait } from "../../components/FumiPortrait";
+import { GameTitleBanner } from "../../components/GameTitleBanner";
+import { PlayButton } from "../../components/PlayButton";
 import { reportGame } from "./lib/sessionReporter";
 
 // One continuous game: region-intro (narration) -> tutorial, i.e. "How to
@@ -304,14 +306,7 @@ function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroPro
       <GateBackdrop powerStage={0} />
 
       <div style={gameTitleWrapStyle}>
-        <div aria-hidden style={titleOrnamentStyle}>
-          <span style={titleOrnamentLineStyle} />
-          <span style={{ fontSize: 11 }}>✦</span>
-          <span style={titleOrnamentLineStyle} />
-        </div>
-        <div style={titleHighlightStyle}>
-          <div style={gameTitleStyle}>Gatekeeper</div>
-        </div>
+        <GameTitleBanner title="Gatekeeper" />
       </div>
 
       <div style={narrationGroupStyle}>
@@ -322,15 +317,7 @@ function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroPro
         <FumiPortrait />
       </div>
 
-      <button
-        type="button"
-        className="tap-scale"
-        onClick={onStart}
-        disabled={!narrationDone}
-        style={{ ...continueButtonStyle, opacity: narrationDone ? 1 : 0, pointerEvents: narrationDone ? "auto" : "none" }}
-      >
-        Start the Adventure →
-      </button>
+      <PlayButton visible={narrationDone} onClick={onStart} />
     </>
   );
 }
@@ -662,46 +649,6 @@ const gameTitleWrapStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   gap: 6,
-};
-
-// Same plate/wordmark treatment as Pathfinder Sweep's region-intro — one
-// shared visual identity across games, not a per-game reskin.
-const titleHighlightStyle: React.CSSProperties = {
-  background: "rgba(8,5,18,0.78)",
-  border: "1px solid rgba(240,166,60,0.4)",
-  borderRadius: 14,
-  padding: "6px 24px",
-  boxShadow: "0 10px 26px rgba(0,0,0,0.55)",
-};
-
-const titleOrnamentStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  color: "#F0C572",
-  filter: "drop-shadow(0 0 6px rgba(240,166,60,0.6))",
-};
-
-const titleOrnamentLineStyle: React.CSSProperties = {
-  width: 28,
-  height: 1,
-  background: "linear-gradient(90deg, transparent, #F0C572, transparent)",
-};
-
-const gameTitleStyle: React.CSSProperties = {
-  fontFamily: "var(--font-title), cursive",
-  fontSize: 42,
-  fontWeight: 700,
-  letterSpacing: 0.5,
-  backgroundImage: "linear-gradient(180deg, #E8CE94 0%, #D9A94F 35%, #B87D2A 60%, #7A4F14 100%)",
-  backgroundSize: "100% 200%",
-  backgroundClip: "text",
-  WebkitBackgroundClip: "text",
-  color: "transparent",
-  WebkitTextFillColor: "transparent",
-  textShadow: "0 3px 8px rgba(0,0,0,0.6)",
-  filter: "drop-shadow(0 0 18px rgba(240,166,60,0.5))",
-  animation: "gold-shimmer 4s ease-in-out infinite",
 };
 
 const narrationGroupStyle: React.CSSProperties = {

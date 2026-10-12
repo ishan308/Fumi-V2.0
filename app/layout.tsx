@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter, Dancing_Script } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Baloo_2 } from "next/font/google";
 import "./globals.css";
 
 const displayFont = Plus_Jakarta_Sans({
@@ -16,12 +16,14 @@ const bodyFont = Inter({
   display: "swap",
 });
 
-// A cursive script, used only for the game's hero wordmark (not general UI
-// text) to give the title a mystical, prestige feel.
-const titleFont = Dancing_Script({
+// A bold, rounded, kid-friendly display face — used only for each game's
+// hero wordmark on its carved-wood title banner (not general UI text).
+// Replaces an earlier cursive script to match the reference app's own
+// title treatment.
+const titleFont = Baloo_2({
   variable: "--font-title",
   subsets: ["latin"],
-  weight: ["700"],
+  weight: ["700", "800"],
   display: "swap",
 });
 
