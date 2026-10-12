@@ -139,12 +139,19 @@ export const SCENE_LIBRARY: ScenePlan[] = [
   // split into two 734x840 halves cropped inside the source's own
   // decorative border/header/footer chrome (that UI is baked into the
   // asset but duplicated by our own HUD, so it's cropped out entirely —
-  // see the crop box in the commit that added this scene). 10 confirmed
-  // differences found by manual region-by-region comparison; coordinates
+  // see the crop box in the commit that added this scene). Coordinates
   // are xPct = x/734*100, yPct = y/840*100. This aspect ratio (0.874) is
   // much closer to the panel box's own ratio than scene-1's was, so the
   // crop window is far more generous (~10-90% visible) and nothing had to
   // be dropped.
+  //
+  // 15 confirmed differences total: the original 10 from manual region-by-
+  // region comparison, plus 5 more found in a second, more exhaustive pass
+  // (bird-added through fish-count below) — raw pixel-diffing on this pair
+  // is unreliable on its own (the intact/copy images are independently
+  // AI-generated, not a true copy+edit pair, so even "unchanged" areas
+  // differ pixel-for-pixel); every entry here was manually confirmed with
+  // a side-by-side crop at its exact coordinates before being added.
   {
     id: "scene-2-ancient-ruins",
     intactSrc: "/games/decoy-grove/scenes/scene-2-intact.png",
@@ -232,6 +239,50 @@ export const SCENE_LIBRARY: ScenePlan[] = [
         yPct: 85.7,
         radiusPct: 6,
         hint: "A little flying visitor over the water is gone.",
+      },
+      {
+        id: "bird-added",
+        type: "added-object",
+        // The bird's head/upper wing sit just above this panel's crop
+        // window (same ~10% top-margin loss as scene-1's dropped
+        // differences) — centered on its tail/lower-wing instead, the
+        // portion that's actually rendered on screen.
+        xPct: 51.1,
+        yPct: 10.9,
+        radiusPct: 6,
+        hint: "A new visitor is flying through the sky above the trees.",
+      },
+      {
+        id: "bridge-chest-added",
+        type: "added-object",
+        xPct: 88.3,
+        yPct: 61.9,
+        radiusPct: 6,
+        hint: "Something new is sitting on the bridge railing.",
+      },
+      {
+        id: "urn-symbol",
+        type: "internal-detail",
+        xPct: 43.3,
+        yPct: 47.6,
+        radiusPct: 5,
+        hint: "The carving on the little jar by the lantern looks different.",
+      },
+      {
+        id: "blob-added",
+        type: "added-object",
+        xPct: 43.3,
+        yPct: 60.7,
+        radiusPct: 6,
+        hint: "A cheerful little friend appeared near the stone steps.",
+      },
+      {
+        id: "fish-count",
+        type: "count",
+        xPct: 71.9,
+        yPct: 77.1,
+        radiusPct: 7,
+        hint: "Count the fish swimming near the dock posts.",
       },
     ],
   },
