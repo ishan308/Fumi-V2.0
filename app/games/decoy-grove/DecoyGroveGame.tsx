@@ -289,6 +289,13 @@ type RegionIntroProps = {
 function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroProps) {
   return (
     <>
+      <div style={introBackdropStyle} aria-hidden>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/games/decoy-grove/backgrounds/region-intro.jpeg" alt="" style={introBackdropImageStyle} />
+        {/* brightness-reduction scrim — the raw art reads too bright/flat
+            behind the title plate and narration bubble otherwise */}
+        <div style={introBackdropScrimStyle} />
+      </div>
       <Ambient tint="forest" />
 
       <div style={gameTitleWrapStyle}>
@@ -379,6 +386,25 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+const introBackdropStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  overflow: "hidden",
+};
+
+const introBackdropImageStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+};
+
+const introBackdropScrimStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  background: "rgba(5,8,6,0.45)",
+};
 
 const gameTitleWrapStyle: React.CSSProperties = {
   position: "absolute",

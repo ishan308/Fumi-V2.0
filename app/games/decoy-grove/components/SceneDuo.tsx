@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { ScenePlan } from "../types";
 
 type Ripple = { id: number; xPct: number; yPct: number };
@@ -63,6 +63,17 @@ function coverCropTransform(boxWidth: number, boxHeight: number, aspectRatio: nu
       return {
         xPct: ((nativeX * scale - offsetX) / boxWidth) * 100,
         yPct: ((nativeY * scale - offsetY) / boxHeight) * 100,
+      };
+    },
+    // a difference's radiusPct (authored once, in image-percent space) ->
+    // on-screen pixel radii — elliptical, not circular, since x% and y%
+    // are percentages of different dimensions (width vs height). This is
+    // what lets the found-marker hug the actual tolerance zone instead of
+    // a fixed guessed size.
+    toBoxRadiusPx(radiusPct: number) {
+      return {
+        rx: (radiusPct / 100) * scaledW,
+        ry: (radiusPct / 100) * scaledH,
       };
     },
   };
@@ -160,6 +171,7 @@ export function SceneDuo({
           .filter((d) => foundIds.has(d.id))
           .map((d) => {
             const pos = transform.toBoxPct(d.xPct, d.yPct);
+            const { rx, ry } = transform.toBoxRadiusPx(Math.max(d.radiusPct, minTargetRadiusPct));
             return (
               <div
                 key={d.id}
@@ -172,7 +184,7 @@ export function SceneDuo({
                   height: 0,
                 }}
               >
-                <div style={foundMarkerStyle} />
+                <FoundMarker rx={rx} ry={ry} />
               </div>
             );
           })}
@@ -197,6 +209,45 @@ export function SceneDuo({
   );
 }
 
+// A healed rune-seal, not a flat colored blob — a soft emerald glow (the
+// Mist's corruption clearing) inside a dashed gold ring (matching the
+// carved-gold framing used everywhere else in the app), sized per-axis to
+// the actual difference's tolerance zone so it hugs the real object
+// rather than a fixed guessed size. A few small sparkles sell the "magic"
+// of the repair.
+function FoundMarker({ rx, ry }: { rx: number; ry: number }) {
+  const w = rx * 2;
+  const h = ry * 2;
+  const uid = useId();
+  const gradId = `found-glow-${uid}`;
+  return (
+    <svg
+      width={w}
+      height={h}
+      viewBox="0 0 100 100"
+      style={{ position: "absolute", left: -rx, top: -ry, overflow: "visible", animation: "found-seal-in 420ms var(--ease-pop) both" }}
+      aria-hidden
+    >
+      <defs>
+        <radialGradient id={gradId}>
+          <stop offset="0%" stopColor="rgba(190,255,215,0.85)" />
+          <stop offset="55%" stopColor="rgba(61,220,132,0.4)" />
+          <stop offset="100%" stopColor="rgba(61,220,132,0)" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#${gradId})`} />
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#F0C572" strokeWidth="3" strokeDasharray="7 5" opacity="0.9" />
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#FFF6E0" strokeWidth="1" opacity="0.5" />
+      {[20, 140, 260].map((deg) => {
+        const rad = (deg * Math.PI) / 180;
+        const sx = 50 + Math.cos(rad) * 44;
+        const sy = 50 + Math.sin(rad) * 44;
+        return <circle key={deg} cx={sx} cy={sy} r="3" fill="#FFF6E0" opacity="0.9" style={{ animation: `twinkle 1.8s ease-in-out ${deg / 100}s infinite` }} />;
+      })}
+    </svg>
+  );
+}
+
 const duoWrapperStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -209,7 +260,10 @@ const panelFrameStyle: React.CSSProperties = {
   position: "relative",
   borderRadius: 16,
   overflow: "hidden",
-  border: "1px solid rgba(240,166,60,0.4)",
+  // Solid, not translucent — a semi-transparent border here washes out to
+  // a near-white line wherever it crosses bright parts of the photo
+  // underneath (sky, water), instead of reading as gold.
+  border: "2px solid #B8863C",
   boxShadow: "0 8px 18px rgba(0,0,0,0.45)",
   background: "#0a0a14",
 };
@@ -238,20 +292,6 @@ const panelImageStyle: React.CSSProperties = {
   objectFit: "cover",
   display: "block",
   userSelect: "none",
-};
-
-// Repaired-area glow — a soft green-gold burst marking a found difference,
-// left in place for the rest of the scene as visible proof of progress.
-const foundMarkerStyle: React.CSSProperties = {
-  position: "absolute",
-  left: -16,
-  top: -16,
-  width: 32,
-  height: 32,
-  borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(168,255,200,0.85), rgba(61,220,132,0.35) 55%, transparent 75%)",
-  border: "1.5px solid rgba(168,255,200,0.8)",
-  animation: "bubble-pop 320ms var(--ease-pop) both",
 };
 
 // A neutral (not red/punishing) ripple — per spec, a wrong-area tap is
