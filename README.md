@@ -12,6 +12,7 @@ screen-based experience presented inside a phone-frame device mockup.
 | 2 | Gatekeeper | [`app/games/gatekeeper/`](app/games/gatekeeper/README.md) | Sustained attention, response inhibition, impulse control |
 | 3 | Decoy Grove | [`app/games/decoy-grove/`](app/games/decoy-grove/README.md) | Selective visual attention, visual discrimination, systematic scanning |
 | 4 | Switch Yard Rescue | [`app/games/switch-yard-rescue/`](app/games/switch-yard-rescue/README.md) | Deductive reasoning, constraint satisfaction, working memory |
+| 5 | Signal Watch | [`app/games/signal-watch/`](app/games/signal-watch/README.md) | Arithmetic fluency, number composition, trial-and-adjust reasoning |
 
 ## Tech stack
 

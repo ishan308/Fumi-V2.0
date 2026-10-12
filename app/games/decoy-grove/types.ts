@@ -91,6 +91,12 @@ export type GameOutcome = {
   totalTapsMade: number;
   correctTaps: number;
   incorrectAreaTaps: number;
+  // Session-level hint usage — backend/analytics metric, not currently
+  // shown on the complete screen. Both are summed only over completed
+  // scenes (same convention as every other per-scene stat above), so a
+  // mid-scene exit doesn't count that scene's not-yet-final hint usage.
+  totalHintsAvailable: number;
+  totalHintsUsed: number;
   accuracyByType: DifferenceTypeAccuracy[];
   accuracyByComplexity: ComplexityAccuracy[];
   gameplayDurationMs: number;

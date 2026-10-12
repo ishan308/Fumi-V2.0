@@ -7,6 +7,7 @@ import { PathfinderSweepGame } from "./pathfinder-sweep";
 import { GatekeeperGame } from "./gatekeeper";
 import { DecoyGroveGame } from "./decoy-grove";
 import { SwitchYardRescueGame } from "./switch-yard-rescue";
+import { SignalWatchGame } from "./signal-watch";
 
 export type DevGameEntry = {
   slug: string;
@@ -34,5 +35,10 @@ export const DEV_GAME_REGISTRY: DevGameEntry[] = [
     slug: "switch-yard-rescue",
     title: "Switch Yard Rescue",
     render: (onExit) => <SwitchYardRescueGame ageBand="6-10" onExit={onExit} />,
+  },
+  {
+    slug: "signal-watch",
+    title: "Signal Watch",
+    render: (onExit) => <SignalWatchGame ageBand="6-10" onExit={onExit} />,
   },
 ];

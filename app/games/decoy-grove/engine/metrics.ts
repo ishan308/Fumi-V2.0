@@ -1,4 +1,5 @@
 import type { ComplexityAccuracy, DifferenceType, DifferenceTypeAccuracy, GameOutcome, GameSessionStatus, SceneResult } from "../types";
+import { MAX_HINTS_PER_SCENE } from "../config";
 
 // Forgiving rating, same spirit as every other FUMI mini-game: the worst
 // finishable outcome is still 1 star, never 0.
@@ -27,6 +28,9 @@ export function computeGameOutcome(
   const correctTaps = sceneResults.reduce((sum, s) => sum + s.correctTaps, 0);
   const incorrectAreaTaps = sceneResults.reduce((sum, s) => sum + s.incorrectTaps, 0);
   const totalTapsMade = correctTaps + incorrectAreaTaps;
+
+  const totalHintsAvailable = scenesCompleted * MAX_HINTS_PER_SCENE;
+  const totalHintsUsed = sceneResults.reduce((sum, s) => sum + s.hintsUsed, 0);
 
   const byType = new Map<DifferenceType, { total: number; found: number }>();
   for (const scene of sceneResults) {
@@ -71,6 +75,8 @@ export function computeGameOutcome(
     totalTapsMade,
     correctTaps,
     incorrectAreaTaps,
+    totalHintsAvailable,
+    totalHintsUsed,
     accuracyByType,
     accuracyByComplexity,
     gameplayDurationMs: endedAt - startedAt,
