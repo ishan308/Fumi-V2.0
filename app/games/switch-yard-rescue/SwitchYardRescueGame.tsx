@@ -17,7 +17,15 @@ import { GameTitleBanner } from "../../components/GameTitleBanner";
 import { PlayButton } from "../../components/PlayButton";
 import { reportGame } from "./lib/sessionReporter";
 
-type GameScreen = "region-intro" | "playing" | "complete";
+type GameScreen = "region-intro" | "tutorial" | "playing" | "complete";
+
+// The tutorial's one job: teach the drag gesture with a few trivial
+// gem-into-cart drops, reusing the same palette/slots state and drag
+// handlers the real rounds use (not a separate parallel mechanic) — three
+// stones and three carts, loaded in any order (no clue logic), so the
+// gesture learned is exactly the one the real rounds need.
+const TUTORIAL_GEMS: GemType[] = ["moss", "river", "sunstone"];
+const TUTORIAL_HOLD_MS = 800;
 
 // Where a dragged gem came from — its own palette tray, or another cart
 // it's being moved/swapped out of. GemType alone identifies it since no
@@ -123,7 +131,16 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
     [rounds, sessionSeed]
   );
 
+  // What "Play" actually does — a one-gem, one-cart practice drop first,
+  // not the real Round 1 directly.
   const handleStartAdventure = useCallback(() => {
+    setPalette([...TUTORIAL_GEMS]);
+    setSlots(new Array(TUTORIAL_GEMS.length).fill(null));
+    runTransition(() => setScreen("tutorial"));
+  }, [runTransition]);
+
+  // What the tutorial hands off to once its one drag is done.
+  const beginRealRound = useCallback(() => {
     startedAtRef.current = Date.now();
     setRoundIndex(0);
     resetRound(0);
@@ -214,6 +231,18 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
             return occupying ? [...rest, occupying] : rest;
           });
         }
+        // Tutorial goal — once every cart is loaded (any order), the
+        // gesture is learned; hand off to the real Round 1. Compute the
+        // post-drop fill state here rather than reading the not-yet-
+        // committed setSlots result.
+        if (screen === "tutorial") {
+          const nextSlots = [...slots];
+          if (source.kind === "slot") nextSlots[source.index] = occupying ?? null;
+          nextSlots[targetIndex] = source.gem;
+          if (nextSlots.every((s) => s != null)) {
+            setTimeout(beginRealRound, TUTORIAL_HOLD_MS);
+          }
+        }
       } else if (target?.type === "palette" && source.kind === "slot") {
         setSlots((prev) => {
           const next = [...prev];
@@ -223,7 +252,7 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
         setPalette((prev) => [...prev, source.gem]);
       }
     },
-    [drag, slots]
+    [drag, slots, screen, beginRealRound]
   );
 
   const handleSendCarts = useCallback(() => {
@@ -262,6 +291,70 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
 
   if (screen === "region-intro") {
     screenContent = <RegionIntro narrationDone={narrationDone} onNarrationDone={() => setNarrationDone(true)} onStart={handleStartAdventure} />;
+  } else if (screen === "tutorial") {
+    const allPlaced = slots.length > 0 && slots.every((s) => s != null);
+    screenContent = (
+      <>
+        <YardBackdrop />
+        <div style={playingWrapStyle}>
+          <div style={headerRowStyle}>
+            <button type="button" className="tap-scale" onClick={handleExit} style={exitButtonStyle} aria-label="Exit game">
+              ✕
+            </button>
+            <div style={roundCounterStyle}>Trial Round</div>
+            <div style={{ width: 34 }} aria-hidden />
+          </div>
+
+          <div style={tutorialBubbleStyle}>
+            {allPlaced ? "Perfect! That's how you load the carts. Here we go!" : "Drag each glowing gem down into a cart to load it."}
+            <div style={narrationBubbleTailStyle} />
+          </div>
+        </div>
+
+        {/* Same palette dropzone + CartTrack the real rounds use, just a
+            single gem and single cart — so the gesture learned here is
+            exactly the one the game needs. */}
+        <div
+          data-palette-dropzone
+          style={{
+            ...paletteRowStyle,
+            boxShadow: hoverTarget?.type === "palette" ? "inset 0 0 0 2px rgba(240,197,114,0.75)" : "none",
+            borderRadius: 16,
+            transition: "box-shadow 120ms ease",
+          }}
+        >
+          {palette.map((gem, i) => (
+            <div key={`${gem}-${i}`} style={{ position: "relative" }}>
+              {/* a pulsing ring on every still-waiting gem, plus a single
+                  bobbing hand on the first one, matching the reference's
+                  guided-drag hint without cluttering all three */}
+              {!drag && <div aria-hidden style={tutorialPulseStyle} />}
+              <GemCard
+                gem={gem}
+                draggable
+                dimmed={drag?.source.kind === "palette" && drag.source.gem === gem}
+                onPointerDown={(e) => beginDrag({ kind: "palette", gem }, e)}
+                onPointerMove={handleDragMove}
+                onPointerUp={handleDragEnd}
+                onPointerCancel={handleDragEnd}
+              />
+              {!drag && i === 0 && <div aria-hidden style={tutorialHandStyle}>👆</div>}
+            </div>
+          ))}
+        </div>
+
+        <CartTrack
+          slots={slots}
+          interactive
+          shake={false}
+          draggingIndex={drag?.source.kind === "slot" ? drag.source.index : null}
+          hoverIndex={hoverTarget?.type === "slot" ? hoverTarget.index : null}
+          onGemPointerDown={(index, gem, e) => beginDrag({ kind: "slot", index, gem }, e)}
+          onDragPointerMove={handleDragMove}
+          onDragPointerUp={handleDragEnd}
+        />
+      </>
+    );
   } else if (screen === "playing" && currentRound) {
     screenContent = (
       <>
@@ -278,34 +371,38 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
           </div>
 
           <ClueList rules={currentRound.rules} />
+        </div>
 
-          <div
-            data-palette-dropzone
-            style={{
-              ...paletteRowStyle,
-              boxShadow: hoverTarget?.type === "palette" ? "inset 0 0 0 2px rgba(240,197,114,0.75)" : "none",
-              borderRadius: 16,
-              transition: "box-shadow 120ms ease",
-            }}
-          >
-            {palette.map((gem, i) => (
-              <GemCard
-                key={`${gem}-${i}`}
-                gem={gem}
-                draggable={!success}
-                dimmed={drag?.source.kind === "palette" && drag.source.gem === gem}
-                onPointerDown={(e) => beginDrag({ kind: "palette", gem }, e)}
-                onPointerMove={handleDragMove}
-                onPointerUp={handleDragEnd}
-                onPointerCancel={handleDragEnd}
-              />
-            ))}
-          </div>
+        {/* Pulled out of playingWrapStyle's normal flow and pinned to the
+            open dirt patch in the background art (between the track
+            switches and the buffer stops — the one spot with no rails
+            running through it), instead of sitting right under the
+            clues. */}
+        <div
+          data-palette-dropzone
+          style={{
+            ...paletteRowStyle,
+            boxShadow: hoverTarget?.type === "palette" ? "inset 0 0 0 2px rgba(240,197,114,0.75)" : "none",
+            borderRadius: 16,
+            transition: "box-shadow 120ms ease",
+          }}
+        >
+          {palette.map((gem, i) => (
+            <GemCard
+              key={`${gem}-${i}`}
+              gem={gem}
+              draggable={!success}
+              dimmed={drag?.source.kind === "palette" && drag.source.gem === gem}
+              onPointerDown={(e) => beginDrag({ kind: "palette", gem }, e)}
+              onPointerMove={handleDragMove}
+              onPointerUp={handleDragEnd}
+              onPointerCancel={handleDragEnd}
+            />
+          ))}
         </div>
 
         {/* Pinned to the painted tracks in the background art, not the
             document flow above — see CartTrack's own notes on why. */}
-        <div style={trackLabelStyle}>{success ? "Power station restarting!" : "Drag the gems into the carts, in order:"}</div>
         <CartTrack
           slots={slots}
           interactive={!success}
@@ -578,6 +675,15 @@ const roundCounterStyle: React.CSSProperties = {
 };
 
 const paletteRowStyle: React.CSSProperties = {
+  position: "absolute",
+  // Centered on the open dirt patch in the background art (image-space
+  // y ≈ 56-63%, between the track switches above and the buffer stops
+  // CartTrack pins to at y=75% below) — the one area with no rails
+  // running through it.
+  top: "55.5%",
+  left: 16,
+  right: 16,
+  transform: "translateY(-50%)",
   display: "flex",
   gap: 8,
   flexWrap: "wrap",
@@ -590,19 +696,43 @@ const paletteRowStyle: React.CSSProperties = {
   minHeight: 68,
 };
 
-// Sits just above the painted buffer stops (CartTrack pins its row to
-// image-space y=75%) rather than in the document flow.
-const trackLabelStyle: React.CSSProperties = {
-  position: "absolute",
-  top: "65%",
-  left: 16,
-  right: 16,
-  textAlign: "center",
-  fontSize: 11.5,
+// Fumi's coaching line for the tutorial — same bubble look as the
+// region-intro narration, sitting just under the header.
+const tutorialBubbleStyle: React.CSSProperties = {
+  position: "relative",
+  background: "rgba(246,245,255,0.97)",
+  color: "var(--color-ink)",
+  borderRadius: 18,
+  padding: "14px 16px",
+  fontSize: 14,
   fontWeight: 700,
-  color: "var(--color-lavender)",
-  opacity: 0.85,
-  textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+  lineHeight: 1.45,
+  textAlign: "center",
+  boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+  marginTop: 8,
+};
+
+// A soft pulsing halo behind the one gem the player must drag — the main
+// "grab this" signal.
+const tutorialPulseStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: -10,
+  borderRadius: 18,
+  border: "3px solid rgba(240,197,114,0.9)",
+  boxShadow: "0 0 18px rgba(240,197,114,0.7)",
+  animation: "glow-pulse 1.3s ease-in-out infinite",
+  pointerEvents: "none",
+};
+
+// The bobbing pointer-finger hint, nudged just below the gem.
+const tutorialHandStyle: React.CSSProperties = {
+  position: "absolute",
+  left: "72%",
+  top: "78%",
+  fontSize: 30,
+  pointerEvents: "none",
+  animation: "float-y 1.1s ease-in-out infinite",
+  filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.5))",
 };
 
 const sendButtonStyle: React.CSSProperties = {

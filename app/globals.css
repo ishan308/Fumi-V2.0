@@ -453,6 +453,34 @@ button {
   }
 }
 
+/* Switch Yard Rescue tutorial: the pointer finger demonstrates the drag —
+   appears at the gem, travels down to the cart, fades, then repeats. */
+@keyframes tutorial-drag-hint {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(118px);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(118px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(118px);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

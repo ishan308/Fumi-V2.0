@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ScenePlan } from "../types";
 
 type Ripple = { id: number; xPct: number; yPct: number };
@@ -244,17 +244,12 @@ export function SceneDuo({
   );
 }
 
-// A healed rune-seal, not a flat colored blob — a soft emerald glow (the
-// Mist's corruption clearing) inside a dashed gold ring (matching the
-// carved-gold framing used everywhere else in the app), sized per-axis to
+// A plain hollow red ring marking a found difference — sized per-axis to
 // the actual difference's tolerance zone so it hugs the real object
-// rather than a fixed guessed size. A few small sparkles sell the "magic"
-// of the repair.
+// rather than a fixed guessed size.
 function FoundMarker({ rx, ry }: { rx: number; ry: number }) {
   const w = rx * 2;
   const h = ry * 2;
-  const uid = useId();
-  const gradId = `found-glow-${uid}`;
   return (
     <svg
       width={w}
@@ -263,22 +258,7 @@ function FoundMarker({ rx, ry }: { rx: number; ry: number }) {
       style={{ position: "absolute", left: -rx, top: -ry, overflow: "visible", animation: "found-seal-in 420ms var(--ease-pop) both" }}
       aria-hidden
     >
-      <defs>
-        <radialGradient id={gradId}>
-          <stop offset="0%" stopColor="rgba(190,255,215,0.85)" />
-          <stop offset="55%" stopColor="rgba(61,220,132,0.4)" />
-          <stop offset="100%" stopColor="rgba(61,220,132,0)" />
-        </radialGradient>
-      </defs>
-      <circle cx="50" cy="50" r="48" fill={`url(#${gradId})`} />
-      <circle cx="50" cy="50" r="44" fill="none" stroke="#F0C572" strokeWidth="3" strokeDasharray="7 5" opacity="0.9" />
-      <circle cx="50" cy="50" r="44" fill="none" stroke="#FFF6E0" strokeWidth="1" opacity="0.5" />
-      {[20, 140, 260].map((deg) => {
-        const rad = (deg * Math.PI) / 180;
-        const sx = 50 + Math.cos(rad) * 44;
-        const sy = 50 + Math.sin(rad) * 44;
-        return <circle key={deg} cx={sx} cy={sy} r="3" fill="#FFF6E0" opacity="0.9" style={{ animation: `twinkle 1.8s ease-in-out ${deg / 100}s infinite` }} />;
-      })}
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#E8392F" strokeWidth="7" />
     </svg>
   );
 }

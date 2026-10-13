@@ -69,6 +69,25 @@ function hitZoneBounds(xPositions: number[]): { left: number; width: number }[] 
 // enough that a slightly-high or slightly-low drop still registers.
 const HIT_ZONE_HEIGHT = 130;
 
+const cartNumberBadgeStyle: React.CSSProperties = {
+  position: "absolute",
+  top: -10,
+  left: "50%",
+  transform: "translate(-50%, -100%)",
+  width: 20,
+  height: 20,
+  borderRadius: "50%",
+  background: "rgba(10,8,20,0.85)",
+  border: "1.5px solid #F0C572",
+  color: "#F0C572",
+  fontSize: 11,
+  fontWeight: 800,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontFamily: "var(--font-display), var(--font-body), system-ui",
+};
+
 // The row of real mine carts waiting at the power station — pinned to the
 // painted tracks in the background art rather than floating in the UI
 // flow. An empty cart sits on each track until a gem is dragged into it;
@@ -145,6 +164,11 @@ export function CartTrack({
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", display: "block" }}
               draggable={false}
             />
+            {/* The cart's position in the sequence — helps a child track
+                which slot is "1st", "2nd", etc. while reading the clues. */}
+            <div aria-hidden style={cartNumberBadgeStyle}>
+              {i + 1}
+            </div>
             {gem && (
               <div style={{ position: "absolute", left: "50%", top: "32%", transform: "translate(-50%, -50%)" }}>
                 <GemCard
