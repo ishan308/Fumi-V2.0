@@ -161,7 +161,17 @@ export function CartTrack({
             <img
               src="/games/switch-yard-rescue/cart.png"
               alt=""
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+                // Lifts the wooden cart off the similarly-brown dirt so it
+                // reads as a distinct object, not part of the ground.
+                filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.55)) drop-shadow(0 0 1.5px rgba(0,0,0,0.6))",
+              }}
               draggable={false}
             />
             {/* The cart's position in the sequence — helps a child track

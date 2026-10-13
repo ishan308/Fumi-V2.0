@@ -764,10 +764,13 @@ const livesIntroButtonStyle: React.CSSProperties = {
 
 const livesRowStyle: React.CSSProperties = {
   display: "flex",
-  gap: 2,
+  gap: 3,
   alignItems: "center",
-  minWidth: 34,
-  justifyContent: "flex-end",
+  justifyContent: "center",
+  padding: "5px 10px",
+  borderRadius: 999,
+  background: "rgba(10,8,20,0.8)",
+  border: "1px solid rgba(240,166,60,0.4)",
 };
 
 const roundCounterStyle: React.CSSProperties = {

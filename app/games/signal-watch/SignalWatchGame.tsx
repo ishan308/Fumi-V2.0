@@ -240,8 +240,16 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
 
         <div style={overlaySignalLabelStyle}>Signal Values</div>
         {SIGNAL_ORDER.map((type, i) => (
-          <div key={type} style={{ ...overlaySignalValueStyle, left: `${[61.6, 74.4, 88.2][i]}%` }}>
-            ={currentRound.values[type]}
+          <div
+            key={type}
+            style={{
+              ...overlaySignalValueStyle,
+              left: `${[61.6, 74.4, 88.2][i]}%`,
+              background: SIGNAL_THEME[type].color,
+              boxShadow: `0 2px 5px rgba(0,0,0,0.4), 0 0 8px ${SIGNAL_THEME[type].glow}`,
+            }}
+          >
+            ×{currentRound.values[type]}
           </div>
         ))}
 
@@ -621,7 +629,17 @@ const overlayValue: React.CSSProperties = {
 const overlayTotalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "27.6%", top: "31.5%" };
 const overlayTotalValueStyle: React.CSSProperties = { ...overlayValue, left: "35%", top: "35.8%", fontSize: 24 };
 const overlaySignalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "74.4%", top: "30.5%" };
-const overlaySignalValueStyle: React.CSSProperties = { ...overlayValue, top: "38%", fontSize: 12, color: "#0a0814", textShadow: "none" };
+const overlaySignalValueStyle: React.CSSProperties = {
+  ...overlayValue,
+  top: "38.5%",
+  fontSize: 13,
+  fontWeight: 800,
+  color: "#fff",
+  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+  padding: "1px 8px",
+  borderRadius: 999,
+  border: "1.5px solid rgba(255,255,255,0.65)",
+};
 const overlayCountStyle: React.CSSProperties = { ...overlayValue, top: "68.5%", fontSize: 18 };
 const overlayEnergyLabelStyle: React.CSSProperties = { ...overlayLabel, left: "51%", top: "77.8%" };
 const overlayEnergyValueStyle: React.CSSProperties = { ...overlayValue, left: "52%", top: "81%", fontSize: 18 };
