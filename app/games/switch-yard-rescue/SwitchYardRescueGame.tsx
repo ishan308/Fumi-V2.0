@@ -724,14 +724,15 @@ const tutorialPulseStyle: React.CSSProperties = {
   pointerEvents: "none",
 };
 
-// The bobbing pointer-finger hint, nudged just below the gem.
+// The pointer-finger hint — starts just below the gem and travels down to
+// the cart on a loop, demonstrating the drag the player should make.
 const tutorialHandStyle: React.CSSProperties = {
   position: "absolute",
-  left: "72%",
-  top: "78%",
+  left: "60%",
+  top: "72%",
   fontSize: 30,
   pointerEvents: "none",
-  animation: "float-y 1.1s ease-in-out infinite",
+  animation: "tutorial-drag-hint 2.2s ease-in-out infinite",
   filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.5))",
 };
 
