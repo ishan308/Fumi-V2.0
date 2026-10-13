@@ -16,10 +16,11 @@ type SignalBackdropProps = {
 // almost nothing).
 export function SignalBackdrop({ variant = "sky" }: SignalBackdropProps) {
   const src = variant === "full" ? "/games/signal-watch/backgrounds/signal-bg-full.jpeg" : "/games/signal-watch/backgrounds/signal-bg.jpeg";
+  const objectFit = "cover" as const;
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit, display: "block" }} />
     </div>
   );
 }

@@ -141,7 +141,11 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
     if (!currentRound || success || paused) return;
     attemptsRef.current += 1;
 
-    if (loaded === currentRound.target) {
+    // Must use at least one of every signal type — hitting the target
+    // with only some of the three doesn't count.
+    const usedAllSignals = SIGNAL_ORDER.every((type) => counts[type] > 0);
+
+    if (loaded === currentRound.target && usedAllSignals) {
       setSuccess(true);
       resultsRef.current = [
         ...resultsRef.current,
@@ -158,7 +162,7 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
       setShakeKey((k) => k + 1);
       setTimeout(() => setShakeKey(0), RETRY_SHAKE_MS);
     }
-  }, [currentRound, loaded, success, paused, advanceRound]);
+  }, [currentRound, loaded, counts, success, paused, advanceRound]);
 
   const handlePlayAgain = useCallback(() => {
     setNarrationDone(false);
