@@ -29,6 +29,25 @@ type SignalCounts = Record<SignalType, number>;
 const ZERO_COUNTS: SignalCounts = { leaf: 0, wave: 0, sun: 0 };
 const SIGNAL_ORDER: SignalType[] = ["leaf", "wave", "sun"];
 
+// Fumi's per-round line — general instructions/motivation early on, with
+// a concrete hint on the harder later rounds (keyed by 0-based round).
+const FUMI_TIPS: string[] = [
+  "Tap + to add signals until you reach the target — use all three!",
+  "Nice start! Remember every round needs at least one of each.",
+  "Mix big and small signals to land exactly on the target.",
+  "Sun is worth the most — start big, then fine-tune with Leaf.",
+  "You've got this! Try a couple of Suns first.",
+  "Think: how many Suns fit under the target without going over?",
+  "Bigger target now — lean on Sun, then adjust with Wave.",
+  "Almost there, hero! Balance all three to hit it exactly.",
+  "Tricky one: add Suns first, then Waves, then Leaf to top up.",
+  "Final round! Fill with Suns, then top up with the rest. Go!",
+];
+
+function fumiTip(roundIndex: number): string {
+  return FUMI_TIPS[roundIndex] ?? FUMI_TIPS[FUMI_TIPS.length - 1];
+}
+
 export type SignalWatchGameProps = {
   ageBand: AgeBand;
   onExit: () => void;
@@ -199,6 +218,22 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
           style={hitPauseStyle}
           aria-label={paused ? "Resume game" : "Pause game"}
         />
+
+        {/* Lights up the painted progress-bar nodes as rounds advance:
+            10 rounds spread across the bar's 4 grey nodes (the 1st, lit
+            orb is the start). */}
+        {PROGRESS_NODE_X.map((x, k) => {
+          const lit = roundIndex >= (k + 1) * (rounds.length / PROGRESS_NODE_X.length);
+          return <div key={k} aria-hidden style={{ ...progressNodeStyle, left: `${x}%`, opacity: lit ? 1 : 0 }} />;
+        })}
+
+        <div style={fumiGroupStyle}>
+          <FumiPortrait size={78} />
+          <div style={fumiBubbleStyle}>
+            {fumiTip(roundIndex)}
+            <div style={fumiBubbleTailStyle} />
+          </div>
+        </div>
 
         <div style={overlayTotalLabelStyle}>Total Energy Needed</div>
         <div style={overlayTotalValueStyle}>{currentRound.target}</div>
@@ -500,7 +535,60 @@ const secondaryButtonStyle: React.CSSProperties = {
 // it was measured against, just physically moved down; only the bottom
 // 40px of background art (plain water/rocks, no UI) gets clipped by the
 // scene wrapper's own overflow: hidden.
-const sceneShiftStyle: React.CSSProperties = { position: "absolute", top: 40, left: 0, right: 0, bottom: -40 };
+const sceneShiftStyle: React.CSSProperties = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 };
+
+// Fumi + speech bubble floating in the sky band between the progress bar
+// and the Total Energy Needed cards (the empty area on this screen).
+const fumiGroupStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "15%",
+  left: 10,
+  right: 10,
+  display: "flex",
+  alignItems: "center",
+  gap: 4,
+};
+
+const fumiBubbleStyle: React.CSSProperties = {
+  position: "relative",
+  flex: 1,
+  background: "rgba(246,245,255,0.97)",
+  color: "var(--color-ink)",
+  borderRadius: 16,
+  padding: "10px 12px",
+  fontSize: 12.5,
+  fontWeight: 700,
+  lineHeight: 1.4,
+  boxShadow: "0 10px 24px rgba(0,0,0,0.35)",
+};
+
+const fumiBubbleTailStyle: React.CSSProperties = {
+  position: "absolute",
+  left: -7,
+  top: "50%",
+  marginTop: -7,
+  width: 14,
+  height: 14,
+  background: "rgba(246,245,255,0.97)",
+  transform: "rotate(45deg)",
+};
+
+// Screen-% centers of the 4 grey nodes painted on the progress bar (the
+// lit orb to their left is the start). A glowing dot is overlaid on each
+// as the player advances through the rounds.
+const PROGRESS_NODE_X = [48.7, 60.3, 71.8, 83.3];
+const progressNodeStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "6.5%",
+  width: 15,
+  height: 15,
+  borderRadius: "50%",
+  transform: "translate(-50%, -50%)",
+  background: "radial-gradient(circle, #CFF0FF, #3DA5E8 70%)",
+  boxShadow: "0 0 8px rgba(79,168,232,0.95)",
+  transition: "opacity 300ms ease",
+  pointerEvents: "none",
+};
 
 const anchorCenter: React.CSSProperties = { position: "absolute", transform: "translate(-50%, -50%)" };
 const hitButton: React.CSSProperties = { background: "transparent", border: "none", cursor: "pointer", padding: 0 };
