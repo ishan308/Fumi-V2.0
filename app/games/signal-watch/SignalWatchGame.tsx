@@ -14,10 +14,8 @@ import {
 } from "./config";
 import { buildRoundSession } from "./engine/sessionPlanner";
 import { computeGameOutcome } from "./engine/metrics";
-import { SignalCounter } from "./components/SignalCounter";
-import { EnergyMeter } from "./components/EnergyMeter";
-import { ProgressTrack } from "./components/ProgressTrack";
 import { Ambient } from "../../components/Ambient";
+import { SignalBackdrop } from "./components/SignalBackdrop";
 import { Typewriter } from "../../components/Typewriter";
 import { FumiCompanion } from "../../components/FumiCompanion";
 import { FumiPortrait } from "../../components/FumiPortrait";
@@ -174,81 +172,87 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
   } else if (screen === "playing" && currentRound) {
     screenContent = (
       <>
-        <Ambient tint="forest" />
-        <div style={playingWrapStyle}>
-          <div style={headerRowStyle}>
-            <button type="button" className="tap-scale" onClick={handleExit} style={iconButtonStyle} aria-label="Exit game">
-              ←
-            </button>
-            <ProgressTrack total={rounds.length} currentIndex={roundIndex} />
-            <button
-              type="button"
-              className="tap-scale"
-              onClick={() => setPaused((p) => !p)}
-              style={iconButtonStyle}
-              aria-label={paused ? "Resume game" : "Pause game"}
-            >
-              {paused ? "▶" : "❚❚"}
-            </button>
+        {/* The full reference scene (fountains, wooden cards, buttons —
+            all pre-drawn), with this screen's own UI reduced to just the
+            dynamic numbers/text and invisible hit-targets positioned on
+            top of that pre-drawn chrome, not competing chrome of its
+            own. Percent positions below were measured directly off the
+            941x1672 source art; see SignalBackdrop's own note on why
+            image-percent ≈ box-percent here (negligible crop).
+
+            This whole layer (backdrop + every overlay) is shifted down
+            as one rigid unit via sceneShiftStyle, clearing the device
+            notch at the top — shifting the backdrop image alone would
+            leave every overlay's measured percent position pointing at
+            the wrong spot underneath it. */}
+        <div style={sceneShiftStyle}>
+        <SignalBackdrop variant="full" />
+
+        <button type="button" onClick={handleExit} style={hitExitStyle} aria-label="Exit game" />
+        <button
+          type="button"
+          onClick={() => setPaused((p) => !p)}
+          style={hitPauseStyle}
+          aria-label={paused ? "Resume game" : "Pause game"}
+        />
+
+        <div style={overlayTotalLabelStyle}>Total Energy Needed</div>
+        <div style={overlayTotalValueStyle}>{currentRound.target}</div>
+
+        <div style={overlaySignalLabelStyle}>Signal Values</div>
+        {SIGNAL_ORDER.map((type, i) => (
+          <div key={type} style={{ ...overlaySignalValueStyle, left: `${[61.6, 74.4, 88.2][i]}%` }}>
+            ={currentRound.values[type]}
           </div>
+        ))}
 
-          <div style={titleBlockStyle}>
-            <div style={gameTitleStyle}>Signal Watch</div>
-            <div style={subtitleStyle}>Use the signals to reach the total energy needed for the river.</div>
-          </div>
-
-          <div style={infoRowStyle}>
-            <div style={infoCardStyle}>
-              <div style={infoLabelStyle}>Total Energy Needed</div>
-              <div style={infoValueStyle}>{currentRound.target}</div>
-            </div>
-            <div style={infoCardStyle}>
-              <div style={infoLabelStyle}>Signal Values</div>
-              <div style={signalValuesRowStyle}>
-                {SIGNAL_ORDER.map((type) => (
-                  <span key={type} style={{ color: SIGNAL_THEME[type].color, fontWeight: 800, fontSize: 12 }}>
-                    {SIGNAL_THEME[type].label[0]}={currentRound.values[type]}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ ...countersRowStyle, animation: shakeKey > 0 ? "shake-x 260ms ease-in-out" : undefined }}>
-            {SIGNAL_ORDER.map((type) => (
-              <SignalCounter
-                key={type}
-                type={type}
-                value={currentRound.values[type]}
-                count={counts[type]}
-                disabled={success || paused}
-                onIncrement={() => handleIncrement(type)}
-                onDecrement={() => handleDecrement(type)}
-              />
-            ))}
-          </div>
-
-          <div style={{ flex: 1 }} />
-
-          <EnergyMeter loaded={loaded} target={currentRound.target} />
-
+        {SIGNAL_ORDER.map((type, i) => (
           <button
+            key={`${type}-minus`}
             type="button"
-            className="tap-scale"
-            onClick={handleSendEnergy}
+            onClick={() => handleDecrement(type)}
             disabled={success || paused}
+            aria-label={`Remove one ${SIGNAL_THEME[type].label}`}
+            style={{ ...hitStepperStyle, left: `${[8, 40.4, 72.8][i]}%`, top: "68.5%" }}
+          />
+        ))}
+        {SIGNAL_ORDER.map((type, i) => (
+          <button
+            key={`${type}-plus`}
+            type="button"
+            onClick={() => handleIncrement(type)}
+            disabled={success || paused}
+            aria-label={`Add one ${SIGNAL_THEME[type].label}`}
+            style={{ ...hitStepperStyle, left: `${[27.6, 60.0, 92.5][i]}%`, top: "68.5%" }}
+          />
+        ))}
+        {SIGNAL_ORDER.map((type, i) => (
+          <div
+            key={`${type}-count`}
             style={{
-              ...sendButtonStyle,
-              opacity: paused ? 0.45 : 1,
-              background: success
-                ? "linear-gradient(135deg, #5FBE63, #3E9A42)"
-                : loaded === currentRound.target
-                  ? "var(--gradient-cta)"
-                  : "#5B6472",
+              ...overlayCountStyle,
+              left: `${[18.1, 49.95, 82.4][i]}%`,
+              animation: shakeKey > 0 ? "shake-x 260ms ease-in-out" : undefined,
             }}
           >
-            {success ? "River Flowing! ✦" : SEND_ENERGY_LABEL}
-          </button>
+            {counts[type]}
+          </div>
+        ))}
+
+        <div style={overlayEnergyLabelStyle}>Energy Loaded</div>
+        <div style={overlayEnergyValueStyle}>
+          {loaded} / {currentRound.target}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSendEnergy}
+          disabled={success || paused}
+          style={{ ...hitSendStyle, opacity: paused ? 0.45 : 1 }}
+          aria-label={SEND_ENERGY_LABEL}
+        >
+          {success ? "River Flowing! ✦" : SEND_ENERGY_LABEL}
+        </button>
         </div>
 
         {paused && <PauseOverlay onResume={() => setPaused(false)} onExit={handleExit} />}
@@ -281,7 +285,7 @@ type RegionIntroProps = {
 function RegionIntro({ narrationDone, onNarrationDone, onStart }: RegionIntroProps) {
   return (
     <>
-      <Ambient tint="forest" />
+      <SignalBackdrop />
 
       <div style={gameTitleWrapStyle}>
         <div style={questLabelStyle}>River Relay</div>
@@ -481,117 +485,72 @@ const secondaryButtonStyle: React.CSSProperties = {
   width: "100%",
 };
 
-const playingWrapStyle: React.CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  display: "flex",
-  flexDirection: "column",
-  paddingTop: SAFE_AREA_TOP + 8,
-  paddingBottom: 16,
-  paddingLeft: 16,
-  paddingRight: 16,
-  gap: 14,
-};
+// Every position below is a measured percent of the 941x1672 background
+// art (see SignalBackdrop's "full" variant) — this screen's own job is
+// just to sit dynamic numbers and invisible hit-targets exactly on top of
+// that pre-drawn chrome, not to draw competing chrome of its own.
+// Shifts the backdrop + every overlay down together, clearing the device
+// notch — the wrapper keeps the full 700px height (bottom: -40 extends it
+// 40px past the scene's own bottom edge) so every existing percent-based
+// "top" position below still resolves against the same 700px reference
+// it was measured against, just physically moved down; only the bottom
+// 40px of background art (plain water/rocks, no UI) gets clipped by the
+// scene wrapper's own overflow: hidden.
+const sceneShiftStyle: React.CSSProperties = { position: "absolute", top: 40, left: 0, right: 0, bottom: -40 };
 
-const headerRowStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 8,
-};
+const anchorCenter: React.CSSProperties = { position: "absolute", transform: "translate(-50%, -50%)" };
+const hitButton: React.CSSProperties = { background: "transparent", border: "none", cursor: "pointer", padding: 0 };
 
-const iconButtonStyle: React.CSSProperties = {
-  width: 34,
-  height: 34,
-  borderRadius: "50%",
-  border: "1px solid rgba(240,166,60,0.35)",
-  background: "rgba(10,8,20,0.78)",
-  color: "var(--color-soft)",
-  fontSize: 14,
-  fontWeight: 700,
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-};
+const hitExitStyle: React.CSSProperties = { ...anchorCenter, ...hitButton, left: "9.4%", top: "4.8%", width: 48, height: 48 };
+const hitPauseStyle: React.CSSProperties = { ...anchorCenter, ...hitButton, left: "89.8%", top: "4.8%", width: 48, height: 48 };
+const hitStepperStyle: React.CSSProperties = { ...anchorCenter, ...hitButton, width: 44, height: 44 };
 
-const titleBlockStyle: React.CSSProperties = {
-  textAlign: "center",
-  display: "flex",
-  flexDirection: "column",
-  gap: 4,
-};
-
-const gameTitleStyle: React.CSSProperties = {
-  fontFamily: "var(--font-display), var(--font-body), system-ui",
-  fontSize: 18,
-  fontWeight: 800,
-  color: "var(--color-gold)",
-};
-
-const subtitleStyle: React.CSSProperties = {
-  fontSize: 11.5,
-  color: "var(--color-lavender)",
-  opacity: 0.85,
-  lineHeight: 1.4,
-};
-
-const infoRowStyle: React.CSSProperties = {
-  display: "flex",
-  gap: 10,
-};
-
-const infoCardStyle: React.CSSProperties = {
-  flex: 1,
-  background: "rgba(10,8,20,0.78)",
-  border: "1px solid rgba(240,166,60,0.35)",
-  borderRadius: 14,
-  padding: "8px 10px",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 4,
-};
-
-const infoLabelStyle: React.CSSProperties = {
+const overlayLabel: React.CSSProperties = {
+  ...anchorCenter,
   fontSize: 9,
   fontWeight: 800,
   letterSpacing: 0.3,
   textTransform: "uppercase",
   color: "var(--color-lavender)",
-  opacity: 0.8,
   textAlign: "center",
+  whiteSpace: "nowrap",
+  textShadow: "0 2px 4px rgba(0,0,0,0.6)",
 };
 
-const infoValueStyle: React.CSSProperties = {
-  fontSize: 22,
+const overlayValue: React.CSSProperties = {
+  ...anchorCenter,
   fontWeight: 800,
-  color: "var(--color-gold)",
+  color: "#FFF6E0",
   fontFamily: "var(--font-display), var(--font-body), system-ui",
+  textShadow: "0 2px 4px rgba(0,0,0,0.7)",
+  whiteSpace: "nowrap",
 };
 
-const signalValuesRowStyle: React.CSSProperties = {
-  display: "flex",
-  gap: 10,
-};
+const overlayTotalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "27.6%", top: "29.9%" };
+const overlayTotalValueStyle: React.CSSProperties = { ...overlayValue, left: "35%", top: "35.8%", fontSize: 24 };
+const overlaySignalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "74.4%", top: "28.7%" };
+const overlaySignalValueStyle: React.CSSProperties = { ...overlayValue, top: "38%", fontSize: 12, color: "#0a0814", textShadow: "none" };
+const overlayCountStyle: React.CSSProperties = { ...overlayValue, top: "68.5%", fontSize: 18 };
+const overlayEnergyLabelStyle: React.CSSProperties = { ...overlayLabel, left: "51%", top: "77.8%" };
+const overlayEnergyValueStyle: React.CSSProperties = { ...overlayValue, left: "52%", top: "81%", fontSize: 18 };
 
-const countersRowStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-  gap: 10,
-};
-
-const sendButtonStyle: React.CSSProperties = {
-  minHeight: 52,
+const hitSendStyle: React.CSSProperties = {
+  position: "absolute",
+  left: "26%",
+  width: "50%",
+  top: "86.1%",
+  height: "6.9%",
+  background: "transparent",
   border: "none",
-  borderRadius: 999,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   color: "#fff",
   fontWeight: 800,
-  fontSize: 15,
-  cursor: "pointer",
-  boxShadow: "var(--shadow-cta)",
-  transition: "opacity 300ms ease, background 300ms ease",
+  fontSize: 14,
+  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+  transition: "opacity 300ms ease",
 };
 
 const pauseOverlayStyle: React.CSSProperties = {
