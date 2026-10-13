@@ -13,11 +13,11 @@ export const SEND_CARTS_LABEL = "Send Carts";
 // glow/border and the cart-slot fill once loaded. Not derived from the
 // shared --color tokens since each gem needs its own hue.
 export const GEM_THEME: Record<GemType, { label: string; color: string; glow: string }> = {
-  moss: { label: "Moss", color: "#5FBE63", glow: "rgba(95,190,99,0.55)" },
-  river: { label: "River", color: "#4FA8E8", glow: "rgba(79,168,232,0.55)" },
-  sunstone: { label: "Sunstone", color: "#F0A63C", glow: "rgba(240,166,60,0.55)" },
-  amethyst: { label: "Amethyst", color: "#B07CFF", glow: "rgba(176,124,255,0.55)" },
-  echo: { label: "Echo", color: "#3DD6D0", glow: "rgba(61,214,208,0.55)" },
+  moss: { label: "Diamond", color: "#5FBE63", glow: "rgba(95,190,99,0.55)" },
+  river: { label: "Topaz", color: "#4FA8E8", glow: "rgba(79,168,232,0.55)" },
+  sunstone: { label: "Coral", color: "#F0A63C", glow: "rgba(240,166,60,0.55)" },
+  amethyst: { label: "Ruby", color: "#B07CFF", glow: "rgba(176,124,255,0.55)" },
+  echo: { label: "Emerald", color: "#3DD6D0", glow: "rgba(61,214,208,0.55)" },
   ember: { label: "Ember", color: "#FF7A4D", glow: "rgba(255,122,77,0.55)" },
 };
 

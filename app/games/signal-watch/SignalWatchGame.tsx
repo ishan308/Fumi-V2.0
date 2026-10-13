@@ -252,7 +252,7 @@ export function SignalWatchGame({ onExit }: SignalWatchGameProps) {
           type="button"
           onClick={handleSendEnergy}
           disabled={success || paused}
-          style={{ ...hitSendStyle, opacity: paused ? 0.45 : 1 }}
+          style={hitSendStyle}
           aria-label={SEND_ENERGY_LABEL}
         >
           {success ? "River Flowing! ✦" : SEND_ENERGY_LABEL}
@@ -515,10 +515,10 @@ const overlayLabel: React.CSSProperties = {
   fontWeight: 800,
   letterSpacing: 0.3,
   textTransform: "uppercase",
-  color: "var(--color-lavender)",
+  color: "#F3D79A",
   textAlign: "center",
   whiteSpace: "nowrap",
-  textShadow: "0 2px 4px rgba(0,0,0,0.6)",
+  textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.6)",
 };
 
 const overlayValue: React.CSSProperties = {
@@ -530,9 +530,9 @@ const overlayValue: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const overlayTotalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "27.6%", top: "29.9%" };
+const overlayTotalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "27.6%", top: "31.5%" };
 const overlayTotalValueStyle: React.CSSProperties = { ...overlayValue, left: "35%", top: "35.8%", fontSize: 24 };
-const overlaySignalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "74.4%", top: "28.7%" };
+const overlaySignalLabelStyle: React.CSSProperties = { ...overlayLabel, left: "74.4%", top: "30.5%" };
 const overlaySignalValueStyle: React.CSSProperties = { ...overlayValue, top: "38%", fontSize: 12, color: "#0a0814", textShadow: "none" };
 const overlayCountStyle: React.CSSProperties = { ...overlayValue, top: "68.5%", fontSize: 18 };
 const overlayEnergyLabelStyle: React.CSSProperties = { ...overlayLabel, left: "51%", top: "77.8%" };
@@ -540,20 +540,24 @@ const overlayEnergyValueStyle: React.CSSProperties = { ...overlayValue, left: "5
 
 const hitSendStyle: React.CSSProperties = {
   position: "absolute",
-  left: "26%",
-  width: "50%",
-  top: "86.1%",
-  height: "6.9%",
-  background: "transparent",
-  border: "none",
+  left: "21%",
+  width: "58%",
+  top: "85.3%",
+  height: "7.6%",
+  // Always-active green pill drawn over the art's (grey, disabled-looking)
+  // painted button.
+  background: "linear-gradient(180deg, #A3E373 0%, #72C644 47%, #4C9E2A 100%)",
+  border: "2px solid #35701A",
+  borderRadius: 999,
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   color: "#fff",
   fontWeight: 800,
-  fontSize: 14,
-  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+  fontSize: 15,
+  textShadow: "0 2px 3px rgba(0,0,0,0.45)",
+  boxShadow: "inset 0 -4px 0 rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.4)",
   transition: "opacity 300ms ease",
 };
 

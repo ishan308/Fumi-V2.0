@@ -97,6 +97,8 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
   const [slots, setSlots] = useState<(GemType | null)[]>([]);
   const [shakeKey, setShakeKey] = useState(0);
   const [success, setSuccess] = useState(false);
+  const [lives, setLives] = useState(3);
+  const [showLivesIntro, setShowLivesIntro] = useState(false);
   const [lastOutcome, setLastOutcome] = useState<GameOutcome | null>(null);
   const [veil, setVeil] = useState<{ opacity: number; message: string | null }>({ opacity: 0, message: null });
   const [drag, setDrag] = useState<{ source: DragSource; x: number; y: number } | null>(null);
@@ -142,9 +144,22 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
   // What the tutorial hands off to once its one drag is done.
   const beginRealRound = useCallback(() => {
     startedAtRef.current = Date.now();
+    setLives(3);
+    resultsRef.current = [];
     setRoundIndex(0);
     resetRound(0);
+    setShowLivesIntro(true);
     runTransition(() => setScreen("playing"));
+  }, [resetRound, runTransition]);
+
+  // All three lives spent — wipe progress and start the whole run over
+  // from round 1.
+  const restartGame = useCallback(() => {
+    startedAtRef.current = Date.now();
+    resultsRef.current = [];
+    setLives(3);
+    setRoundIndex(0);
+    runTransition(() => resetRound(0), "Out of lives! Starting over…");
   }, [resetRound, runTransition]);
 
   const finishGame = useCallback(() => {
@@ -257,10 +272,10 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
 
   const handleSendCarts = useCallback(() => {
     if (!currentRound || success) return;
-    if (slots.some((s) => s === null)) return;
     attemptsRef.current += 1;
 
-    const isCorrect = currentRound.correctOrder.every((gem, i) => slots[i] === gem);
+    const filled = slots.length > 0 && slots.every((s) => s !== null);
+    const isCorrect = filled && currentRound.correctOrder.every((gem, i) => slots[i] === gem);
     if (isCorrect) {
       setSuccess(true);
       resultsRef.current = [
@@ -277,15 +292,16 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
     } else {
       setShakeKey((k) => k + 1);
       setTimeout(() => setShakeKey(0), RETRY_SHAKE_MS);
+      const nextLives = lives - 1;
+      setLives(nextLives);
+      if (nextLives <= 0) setTimeout(restartGame, RETRY_SHAKE_MS + 120);
     }
-  }, [currentRound, slots, success, advanceRound]);
+  }, [currentRound, slots, success, lives, advanceRound, restartGame]);
 
   const handlePlayAgain = useCallback(() => {
     setNarrationDone(false);
     runTransition(() => setScreen("region-intro"));
   }, [runTransition]);
-
-  const allSlotsFilled = slots.length > 0 && slots.every((s) => s !== null);
 
   let screenContent: React.ReactNode = null;
 
@@ -367,7 +383,13 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
             <div style={roundCounterStyle}>
               Round {currentRound.roundNumber} of {rounds.length}
             </div>
-            <div style={{ width: 34 }} aria-hidden />
+            <div style={livesRowStyle} aria-label={`${lives} lives left`}>
+              {[0, 1, 2].map((i) => (
+                <span key={i} style={{ fontSize: 16, opacity: i < lives ? 1 : 0.25 }}>
+                  {i < lives ? "❤️" : "🖤"}
+                </span>
+              ))}
+            </div>
           </div>
 
           <ClueList rules={currentRound.rules} />
@@ -418,16 +440,33 @@ export function SwitchYardRescueGame({ onExit }: SwitchYardRescueGameProps) {
           type="button"
           className="tap-scale"
           onClick={handleSendCarts}
-          disabled={!allSlotsFilled || success}
+          disabled={success}
           style={{
             ...sendButtonStyle,
-            opacity: allSlotsFilled && !success ? 1 : 0.45,
-            pointerEvents: allSlotsFilled && !success ? "auto" : "none",
-            background: success ? "linear-gradient(135deg, #5FBE63, #3E9A42)" : "var(--gradient-cta)",
+            opacity: 1,
+            pointerEvents: success ? "none" : "auto",
+            background: "linear-gradient(135deg, #5FBE63, #3E9A42)",
           }}
         >
           {success ? "Restarted! ✦" : SEND_CARTS_LABEL}
         </button>
+
+        {showLivesIntro && (
+          <div style={livesIntroOverlayStyle}>
+            <div style={livesIntroCardStyle}>
+              <div style={livesIntroHeartsStyle} aria-hidden>
+                ❤️❤️❤️
+              </div>
+              <div style={livesIntroTitleStyle}>You have 3 lives</div>
+              <div style={livesIntroBodyStyle}>
+                Each wrong order costs one life. Lose all three and the run starts over — so place the carts carefully!
+              </div>
+              <button type="button" className="tap-scale" onClick={() => setShowLivesIntro(false)} style={livesIntroButtonStyle}>
+                Got it!
+              </button>
+            </div>
+          </div>
+        )}
       </>
     );
   } else if (screen === "complete" && lastOutcome) {
@@ -660,6 +699,75 @@ const exitButtonStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   flexShrink: 0,
+};
+
+const livesIntroOverlayStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 160,
+  background: "rgba(5,4,12,0.72)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 28,
+};
+
+const livesIntroCardStyle: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 300,
+  background: "linear-gradient(180deg, #211b45 0%, #140f30 100%)",
+  border: "1px solid rgba(240,166,60,0.45)",
+  borderRadius: 22,
+  padding: "26px 22px 22px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 12,
+  boxShadow: "0 24px 48px rgba(0,0,0,0.6)",
+};
+
+const livesIntroHeartsStyle: React.CSSProperties = {
+  fontSize: 30,
+  letterSpacing: 4,
+  filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.5))",
+};
+
+const livesIntroTitleStyle: React.CSSProperties = {
+  fontFamily: "var(--font-display), var(--font-body), system-ui",
+  fontSize: 19,
+  fontWeight: 800,
+  color: "#F3D79A",
+  textAlign: "center",
+};
+
+const livesIntroBodyStyle: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: "var(--color-lavender)",
+  textAlign: "center",
+  lineHeight: 1.55,
+};
+
+const livesIntroButtonStyle: React.CSSProperties = {
+  marginTop: 4,
+  minHeight: 48,
+  width: "100%",
+  border: "none",
+  borderRadius: 999,
+  background: "var(--gradient-cta)",
+  color: "#fff",
+  fontWeight: 800,
+  fontSize: 15,
+  cursor: "pointer",
+  boxShadow: "var(--shadow-cta)",
+};
+
+const livesRowStyle: React.CSSProperties = {
+  display: "flex",
+  gap: 2,
+  alignItems: "center",
+  minWidth: 34,
+  justifyContent: "flex-end",
 };
 
 const roundCounterStyle: React.CSSProperties = {
